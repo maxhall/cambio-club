@@ -25,7 +25,7 @@
 
 <form>
   <h2>Join a game</h2>
-  <label for="game-id">Enter a code:</label>
+  <label for="game-id">Enter your code:</label>
   <input bind:value={gameId} type="text" name="room" id="game-id" />
   <button on:click|preventDefault={joinGame}>Join</button>
   {#if joinError}

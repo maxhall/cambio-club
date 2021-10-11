@@ -1,5 +1,5 @@
 // @ts-check
-import Game from "./Game";
+import Cambio from "./Cambio";
 import crypto from "crypto";
 
 const randomId = () => crypto.randomBytes(8).toString("hex");
@@ -7,7 +7,7 @@ const randomId = () => crypto.randomBytes(8).toString("hex");
 /** @typedef {{ connected: boolean, sockets: string[], disconnectedTime?: string }} SessionData */
 class GameManager {
   constructor() {
-    /** @type {Map<string, Game>} */
+    /** @type {Map<string, Cambio>} */
     this.games = new Map();
     /** @type {Map<string, SessionData>} */
     this.sessions = new Map();
@@ -128,7 +128,7 @@ class GameManager {
     let newGameId = this.getUnusedId();
     this.games.set(
       newGameId,
-      new Game(newGameId, this.sendStateToSession, options)
+      new Cambio(newGameId, this.sendStateToSession, options)
     );
     return newGameId;
   }

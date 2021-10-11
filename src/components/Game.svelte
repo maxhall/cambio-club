@@ -99,6 +99,7 @@
     }
   }
 
+  // TODO: Remove function
   function handlePlusOne() {
     sendUpdate({
       gameId: gameId,

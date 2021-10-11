@@ -1,8 +1,8 @@
 // @ts-check
-/** @typedef {{connected: boolean, name: string | null}} PlayerData */
+/** @typedef {import('./types').PlayerData} PlayerData */
 /** @typedef {import('./types').SendStateToSession} SendStateToSession */
 /** @typedef {import('./types').Update} Update */
-export default class Game {
+export default class Cambio {
   /**
    * @param {string} id
    * @param {SendStateToSession} sendStateToSession
@@ -12,7 +12,9 @@ export default class Game {
     this.id = id;
     this.sendStateToSession = sendStateToSession;
     this.options = options;
+    // TODO: Remove
     this.count = 1;
+    this.clientStateId = 0;
     /** @type {import('./types').Events} */
     this.events = [];
     /** @type {Map<string, PlayerData>} Players */
@@ -23,7 +25,31 @@ export default class Game {
     this.isApplyingUpdate = false;
     /** @type {Array<{sessionId: string, data: Update}>} */
     this.updateQueue = [];
-    this.clientStateId = 0;
+    this.permittedUpdates = {
+      settingUp:	["setName", "indicateReady", "leave"],
+      initialViewing:	["snap", "leave"],
+      snapSuspension:	["tapCard", "leave"],
+      startingTurn:	["tapCard", "snap", "cambio", "pass", "leave"],
+      awaitingDeckSwapChoice:	["tapCard", "snap", "leave"],
+      awaitingPileSwapChoice:	["tapCard", "snap", "leave"],
+      awaitingMateLookChoice:	["tapCard", "snap", "leave"],
+      previewingCard:	["snap", "leave"],
+      awaitingMineLookChoice:	["tapCard", "snap", "leave"],
+      awaitingQueenLookChoice:	["tapCard", "snap", "leave"],
+      awaitingQueenSwapOwnChoice:	["tapCard", "snap", "leave"],
+      awaitingQueenSwapOtherChoice:	["tapCard", "snap", "leave"],
+      awaitingBlindSwapOwnChoice:	["tapCard", "snap", "leave"],
+      awaitingBlindSwapOtherChoice:	["tapCard", "snap", "leave"],
+      gameOver:	["requestRematch", "leave"],
+      exit:	[],
+      // TODO: Including "leave" in these is probably meaningless because the updates are gated when
+      // they are processed, not when they are receieved and the game will never be in this state
+      // when that happens
+      resolvingSnap:	["leave"],
+      finishingDeckSwap:	["leave"],
+      finishingPileSwap:	["leave"],
+      startingSpecialPower:	["leave"],
+    }
   }
 
   /** @param {string} sessionId */
@@ -178,7 +204,8 @@ export default class Game {
           this.players.set(sessionId, updatedPlayerData);
         }
       }
-
+      
+      // TODO: Remove
       if (update.action === "plusOne") {
         this.count++;
         const moduloTen = this.count % 10;

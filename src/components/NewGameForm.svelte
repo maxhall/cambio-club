@@ -1,13 +1,13 @@
 <script>
   // @ts-check
   import { goto } from "@sapper/app";
-  let selectedOptions = ["Sound effects"];
-  const options = ["Cool explosions", "Sound effects"];
-
+  let selectedOptions = ["Allow snapping others' cards"];
+  const options = ["Allow snapping others' cards", "Show Cambio points on picture cards"];
+  
   /** @type {import('../types').GameOptions} */
   $: optionsObject = {
-    explosions: selectedOptions.includes("Cool explosions"),
-    soundEffects: selectedOptions.includes("Sound effects"),
+    showValuesOnPictureCards: selectedOptions.includes("Show Cambio points on picture cards"),
+    canSnapOtherPlayers: selectedOptions.includes("Allow snapping others' cards"),
   };
 
   function newGame() {
