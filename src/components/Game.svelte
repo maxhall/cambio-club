@@ -1,26 +1,11 @@
 <script>
-  // @ts-check
-  import { io } from "socket.io-client";
-  import { onMount } from "svelte";
   import { fly } from "svelte/transition";
   /** @type {import('@sapper/app').goto } */
-  import { goto } from "@sapper/app";
-  import NewGameForm from "./NewGameForm.svelte";
-
-  /** @type {string} */
-  export let gameId;
-  /** @type {'starting' | 'error' | 'creatingName' | 'waitingForReady' | 'playing'} */
-  let status = "starting";
-  let count = 0;
-  /** @typedef {import('../types').FlatPlayerData} Player */
-  /** @type {Player[]} */
-  let players = [];
-  /** @type {string} */
-  let errorMessage;
-  /** @type {string} */
-  let name;
-  /** @type {string} */
-  let nameError;
+  import {goto} from "@sapper/app";
+  /** @type {import('../types').ClientState} */
+  export let state;
+  /** @type {import('socket.io-client').Socket}*/
+  export let socket;
   /** @type {import('../types').Events} */
   let textEvents = [];
   let graphicEvents = [];
@@ -29,54 +14,32 @@
   let eventTextQueueTimer;
 
   const eventTextTimeout = 3000;
-  const socket = io({ autoConnect: false });
 
-  if (process.browser) {
-    const sessionId = localStorage.getItem("sessionId");
-    socket.auth = { sessionId, gameId };
-    socket.connect();
+  $: console.log(state);
+  // TODO: If events get funky, find a non-reactive approach to this
+  $: if (state.events.length > 0) processEvents(state.events);
+
+  // TODO: Remove function
+  function handlePlusOne() {
+    sendUpdate({
+      gameId: state.gameId,
+      action: "plusOne",
+    });
   }
 
-  onMount(() => {
-    socket.on(
-      "update",
-      (/** @type {import('../types').ClientState} */ data) => {
-        console.log(data);
-        // There's a chance a client will have two games going in different tabs
-        // so we check that the update provided matches the game being played
-        if (data.gameId != gameId) return;
-
-        if (data.name && data.state !== "settingUp") {
-          status = "playing";
-        } else if (data.name) {
-          status = "waitingForReady";
-        } else {
-          status = "creatingName";
-        }
-        count = data.count;
-        players = data.players;
-        if (data.events.length > 0) processEvents(data.events);
-      }
-    );
-
-    socket.on("error", (data) => {
-      console.log(data);
-      status = "error";
-      errorMessage = data.message;
+  function handleLeave() {
+    sendUpdate({
+      gameId: state.gameId,
+      action: "leave",
     });
+    socket.disconnect();
+    goto("/");
+  }
 
-    socket.on("session", (data) => {
-      console.log(data);
-      socket.auth = { sessionId: data.sessionId };
-      localStorage.setItem("sessionId", data.sessionId);
-    });
-
-    socket.on("connection_error", (error) => {
-      status = "error";
-      errorMessage = "Try refreshing";
-      console.log(error);
-    });
-  });
+  /** @param {import('../types').Update} update*/
+  function sendUpdate(update) {
+    socket.emit("update", update);
+  }
 
   /** @param {import('../types').Events} newEvents */
   function processEvents(newEvents) {
@@ -104,101 +67,25 @@
       }, eventTextTimeout);
     }
   }
-
-  // TODO: Remove function
-  function handlePlusOne() {
-    sendUpdate({
-      gameId: gameId,
-      action: "plusOne",
-    });
-  }
-
-  function handleNameChoice() {
-    nameError = "";
-    const trimmedName = name.trim();
-    if (trimmedName.length < 1 || trimmedName.length > 15) {
-      nameError = "Your name must be between 1 and 15 characters";
-    } else {
-      sendUpdate({
-        gameId: gameId,
-        action: "setName",
-        name: trimmedName,
-      });
-    }
-  }
-
-  function handleLeave() {
-    sendUpdate({
-      gameId: gameId,
-      action: "leave",
-    });
-    socket.disconnect();
-    goto("/");
-  }
-
-  function handleReady() {
-    sendUpdate({
-      gameId,
-      action: "indicateReady",
-    });
-  }
-
-  /** @param {import('../types').Update} update*/
-  function sendUpdate(update) {
-    socket.emit("update", update);
-  }
 </script>
 
-<p>Session id: {gameId}</p>
-
-{#if status === "error"}
-  <h1>Error</h1>
-  <p>{errorMessage}</p>
-  <NewGameForm />
-{:else if status === "starting"}
-  <p>Loading...</p>
-{:else if status === "creatingName"}
-  <form on:submit|preventDefault={handleNameChoice}>
-    <label for="choose-name"
-      >Choose a name:<input
-        type="text"
-        bind:value={name}
-        name="choose-name"
-        id="choose-name"
-      /></label
-    >
-    <button on:click={handleNameChoice}>Submit</button>
-    {#if nameError}
-      <p>{nameError}</p>
-    {/if}
-  </form>
-{:else if status === "waitingForReady"}
-  <ol>
-    {#each players as player}
-      <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
-    {/each}
-  </ol>
-  <p>If they're ready hide the ready button</p>
-  <button on:click={handleReady}>I'm ready to play</button>
-{:else if status === "playing"}
-  <h3>In session</h3>
-  <p>Shared counter: {count}</p>
-  <div class="event-bar">
-    {#if eventText}
-      <p in:fly={{ y: 10, duration: 500 }} out:fly={{ y: -10, duration: 500 }}>
-        {eventText}
-      </p>
-    {/if}
-  </div>
-  <button on:click={handlePlusOne}>Add one!</button>
-  <ol>
-    People:
-    {#each players as player}
-      <li>{player.name} - Connected: {player.connected}</li>
-    {/each}
-  </ol>
-  <button on:click={handleLeave}>Leave</button>
-{/if}
+<h3>In session</h3>
+<p>Shared counter: {state.count}</p>
+<div class="event-bar">
+  {#if eventText}
+    <p in:fly={{ y: 10, duration: 500 }} out:fly={{ y: -10, duration: 500 }}>
+      {eventText}
+    </p>
+  {/if}
+</div>
+<button on:click={handlePlusOne}>Add one!</button>
+<ol>
+  People:
+  {#each state.players as player}
+    <li>{player.name} - Connected: {player.connected}</li>
+  {/each}
+</ol>
+<button on:click={handleLeave}>Leave</button>
 
 <style>
   .event-bar {

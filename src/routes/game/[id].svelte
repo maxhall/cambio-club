@@ -11,7 +11,7 @@
 
 <script>
   // @ts-check
-  import Game from "../../components/Game.svelte";
+  import GameWrapper from "../../components/GameWrapper.svelte";
   /** @type {string} */
   export let gameId;
 
@@ -20,5 +20,5 @@
 </script>
 
 {#key gameId}
-  <Game {gameId} />
+  <GameWrapper {gameId} />
 {/key}
