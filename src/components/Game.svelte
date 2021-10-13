@@ -9,7 +9,7 @@
 
   /** @type {string} */
   export let gameId;
-  /** @type {'starting' | 'error' | 'creatingName' | 'playing'} */
+  /** @type {'starting' | 'error' | 'creatingName' | 'waitingForReady' | 'playing'} */
   let status = "starting";
   let count = 0;
   /** @typedef {import('../types').FlatPlayerData} Player */
@@ -38,20 +38,26 @@
   }
 
   onMount(() => {
-    socket.on("update", (data) => {
-      console.log(data);
-      // There's a chance a client will have two games going in different tabs
-      // so we check that the update provided matches the game being played
-      if (data.gameId != gameId) return;
-      if (data.name) {
-        status = "playing";
-      } else {
-        status = "creatingName";
+    socket.on(
+      "update",
+      (/** @type {import('../types').ClientState} */ data) => {
+        console.log(data);
+        // There's a chance a client will have two games going in different tabs
+        // so we check that the update provided matches the game being played
+        if (data.gameId != gameId) return;
+
+        if (data.name && data.state !== "settingUp") {
+          status = "playing";
+        } else if (data.name) {
+          status = "waitingForReady";
+        } else {
+          status = "creatingName";
+        }
+        count = data.count;
+        players = data.players;
+        if (data.events.length > 0) processEvents(data.events);
       }
-      count = data.count;
-      players = data.players;
-      if (data.events.length > 0) processEvents(data.events);
-    });
+    );
 
     socket.on("error", (data) => {
       console.log(data);
@@ -130,6 +136,13 @@
     goto("/");
   }
 
+  function handleReady() {
+    sendUpdate({
+      gameId,
+      action: "indicateReady",
+    });
+  }
+
   /** @param {import('../types').Update} update*/
   function sendUpdate(update) {
     socket.emit("update", update);
@@ -159,6 +172,14 @@
       <p>{nameError}</p>
     {/if}
   </form>
+{:else if status === "waitingForReady"}
+  <ol>
+    {#each players as player}
+      <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
+    {/each}
+  </ol>
+  <p>If they're ready hide the ready button</p>
+  <button on:click={handleReady}>I'm ready to play</button>
 {:else if status === "playing"}
   <h3>In session</h3>
   <p>Shared counter: {count}</p>

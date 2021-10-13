@@ -26,30 +26,31 @@ export default class Cambio {
     /** @type {Array<{sessionId: string, data: Update}>} */
     this.updateQueue = [];
     this.permittedUpdates = {
-      settingUp:	["setName", "indicateReady", "leave"],
-      initialViewing:	["snap", "leave"],
-      snapSuspension:	["tapCard", "leave"],
-      startingTurn:	["tapCard", "snap", "cambio", "pass", "leave"],
-      awaitingDeckSwapChoice:	["tapCard", "snap", "leave"],
-      awaitingPileSwapChoice:	["tapCard", "snap", "leave"],
-      awaitingMateLookChoice:	["tapCard", "snap", "leave"],
-      previewingCard:	["snap", "leave"],
-      awaitingMineLookChoice:	["tapCard", "snap", "leave"],
-      awaitingQueenLookChoice:	["tapCard", "snap", "leave"],
-      awaitingQueenSwapOwnChoice:	["tapCard", "snap", "leave"],
-      awaitingQueenSwapOtherChoice:	["tapCard", "snap", "leave"],
-      awaitingBlindSwapOwnChoice:	["tapCard", "snap", "leave"],
-      awaitingBlindSwapOtherChoice:	["tapCard", "snap", "leave"],
-      gameOver:	["requestRematch", "leave"],
-      exit:	[],
+      settingUp: ["setName", "indicateReady", "leave"],
+      dealing: ["leave"],
+      initialViewing: ["snap", "leave"],
+      snapSuspension: ["tapCard", "leave"],
+      startingTurn: ["tapCard", "snap", "cambio", "pass", "leave"],
+      awaitingDeckSwapChoice: ["tapCard", "snap", "leave"],
+      awaitingPileSwapChoice: ["tapCard", "snap", "leave"],
+      awaitingMateLookChoice: ["tapCard", "snap", "leave"],
+      previewingCard: ["snap", "leave"],
+      awaitingMineLookChoice: ["tapCard", "snap", "leave"],
+      awaitingQueenLookChoice: ["tapCard", "snap", "leave"],
+      awaitingQueenSwapOwnChoice: ["tapCard", "snap", "leave"],
+      awaitingQueenSwapOtherChoice: ["tapCard", "snap", "leave"],
+      awaitingBlindSwapOwnChoice: ["tapCard", "snap", "leave"],
+      awaitingBlindSwapOtherChoice: ["tapCard", "snap", "leave"],
+      gameOver: ["requestRematch", "leave"],
+      exit: [],
       // TODO: Including "leave" in these is probably meaningless because the updates are gated when
       // they are processed, not when they are receieved and the game will never be in this state
       // when that happens
-      resolvingSnap:	["leave"],
-      finishingDeckSwap:	["leave"],
-      finishingPileSwap:	["leave"],
-      startingSpecialPower:	["leave"],
-    }
+      resolvingSnap: ["leave"],
+      finishingDeckSwap: ["leave"],
+      finishingPileSwap: ["leave"],
+      startingSpecialPower: ["leave"],
+    };
   }
 
   /** @param {string} sessionId */
@@ -84,6 +85,16 @@ export default class Cambio {
     );
   }
 
+  deal() {
+    return new Promise((resolve) => {
+      this.state = "dealing";
+      // Deal out cards to their positions
+      this.sendStateToAll().then((_) => {
+        resolve(this.initialViewing(10));
+      });
+    });
+  }
+
   getAndEmptyEventQueue() {
     const currentEvents = this.events;
     this.events = [];
@@ -101,6 +112,112 @@ export default class Cambio {
 
   getState() {
     return this.state;
+  }
+
+  /**
+   * @param {string} sessionId
+   * @param {Update} update
+   */
+  handleUpdate(sessionId, update) {
+    return new Promise((resolve) => {
+      switch (update.action) {
+        case "setName":
+          const existingPlayerData = this.players.get(sessionId);
+          if (existingPlayerData) {
+            const updatedPlayerData = { ...existingPlayerData };
+            updatedPlayerData.name = update.name;
+            this.players.set(sessionId, updatedPlayerData);
+          }
+          resolve(this.sendStateToAll());
+          break;
+
+        case "indicateReady":
+          const playerData = this.players.get(sessionId);
+          if (playerData) {
+            const updatedPlayerData = { ...playerData };
+            updatedPlayerData.ready = true;
+            this.players.set(sessionId, updatedPlayerData);
+          }
+
+          const playersNotReady = [...this.players.values()].filter(
+            (p) => p.ready !== true
+          );
+          if (playersNotReady.length == 0 && this.players.size > 1) {
+            resolve(this.deal());
+          } else {
+            resolve(this.sendStateToAll());
+          }
+          break;
+
+        // TODO: Remove
+        case "plusOne":
+          this.count++;
+          const moduloTen = this.count % 10;
+          if (moduloTen == 0 && this.count > 1) {
+            this.events.push({
+              type: "text",
+              message: "Wow, another ten clicks hey !!",
+            });
+          }
+          resolve(this.sendStateToAll());
+          break;
+
+        case "leave":
+          const player = this.players.get(sessionId);
+          if (player) {
+            this.events.push({
+              type: "text",
+              message: `${player.name} left the game`,
+            });
+          }
+          this.state = "exit";
+          this.players.delete(sessionId);
+          resolve(this.sendStateToAll());
+          break;
+
+        case "snap":
+          resolve(this.sendStateToAll());
+          break;
+
+        case "tapCard":
+          resolve(this.sendStateToAll());
+          break;
+
+        case "pass":
+          resolve(this.sendStateToAll());
+          break;
+
+        case "cambio":
+          resolve(this.sendStateToAll());
+          break;
+
+        case "requestRematch":
+          resolve(this.sendStateToAll());
+          break;
+      }
+    });
+  }
+
+  /** @param {number} seconds How long players' get to view their bottom two cards at the game's start */
+  initialViewing(seconds) {
+    return new Promise((resolve) => {
+      this.state = "initialViewing";
+      resolve(this.sendStateToAll());
+    });
+  }
+
+  processUpdateQueue() {
+    this.isApplyingUpdate = true;
+    const update = this.updateQueue.shift();
+    if (update) {
+      this.handleUpdate(update.sessionId, update.data).then(() => {
+        if (this.updateQueue.length > 0) {
+          return this.processUpdateQueue();
+        } else {
+          this.isApplyingUpdate = false;
+        }
+      });
+    }
   }
 
   /**
@@ -148,6 +265,7 @@ export default class Cambio {
         const clientState = {
           clientStateId: this.clientStateId,
           gameId: this.id,
+          state: this.state,
           name: playerDetails ? playerDetails.name : null,
           count: this.count,
           players: flattenedPlayerData,
@@ -166,6 +284,8 @@ export default class Cambio {
    * @param {Update} update
    */
   update(sessionId, update) {
+    console.log(update);
+
     if (!this.players.has(sessionId)) return;
     this.updateQueue.push({
       sessionId: sessionId,
@@ -174,62 +294,5 @@ export default class Cambio {
     if (!this.isApplyingUpdate) {
       this.processUpdateQueue();
     }
-  }
-
-  processUpdateQueue() {
-    this.isApplyingUpdate = true;
-    const update = this.updateQueue.shift();
-    if (update) {
-      this.handleUpdate(update.sessionId, update.data).then(() => {
-        if (this.updateQueue.length > 0) {
-          return this.processUpdateQueue();
-        } else {
-          this.isApplyingUpdate = false;
-        }
-      });
-    }
-  }
-
-  /**
-   * @param {string} sessionId
-   * @param {Update} update
-   */
-  handleUpdate(sessionId, update) {
-    return new Promise((resolve) => {
-      if (update.action === "setName") {
-        const existingPlayerData = this.players.get(sessionId);
-        if (existingPlayerData) {
-          const updatedPlayerData = { ...existingPlayerData };
-          updatedPlayerData.name = update.name;
-          this.players.set(sessionId, updatedPlayerData);
-        }
-      }
-      
-      // TODO: Remove
-      if (update.action === "plusOne") {
-        this.count++;
-        const moduloTen = this.count % 10;
-        if (moduloTen == 0 && this.count > 1) {
-          this.events.push({
-            type: "text",
-            message: "Wow, another ten clicks hey !!",
-          });
-        }
-      }
-
-      if (update.action === "leave") {
-        const player = this.players.get(sessionId);
-        if (player) {
-          this.events.push({
-            type: "text",
-            message: `${player.name} left the game`,
-          });
-        }
-        this.state = "exit";
-        this.players.delete(sessionId);
-      }
-
-      resolve(this.sendStateToAll());
-    });
   }
 }

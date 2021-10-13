@@ -50,6 +50,7 @@ export type Card = (OrdinaryCardDetails | JokerCardDetails | FacedownCardDetails
  * Internal states and related
  */
 export type State = "settingUp" |
+    "dealing" |
     "initialViewing" |
     "snapSuspension" |
     "resolvingSnap" |
@@ -72,7 +73,8 @@ export type State = "settingUp" |
 
 export type PlayerData = {
     connected: boolean,
-    name: string | null
+    name: string | null,
+    ready: boolean
 };
 
 /**
@@ -91,6 +93,7 @@ export type Events = Event[];
 export type ClientState = {
     clientStateId: number
     gameId: string,
+    state: State,
     name: string | null,
     count: number,
     players: FlatPlayerData[],
