@@ -18,10 +18,10 @@
 </script>
 
 <svelte:head>
-  <title>Session management test</title>
+  <title>Cambio Club</title>
 </svelte:head>
 
-<h1>Front page</h1>
+<h1>Cambio club</h1>
 
 <form>
   <h2>Join a game</h2>
