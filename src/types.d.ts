@@ -35,13 +35,9 @@ type OrdinaryCardDetails = {
     rank: Rank
 };
 
-type FacedownCardDetails = {
-    suit: null,
-    rank: null
-};
-
-export type Card = (OrdinaryCardDetails | JokerCardDetails | FacedownCardDetails) & {
+export type Card = (OrdinaryCardDetails | JokerCardDetails) & {
     position: CardPosition,
+    facedown: boolean,
     canBeTapped: boolean,
     selected: boolean,
 };
@@ -49,6 +45,8 @@ export type Card = (OrdinaryCardDetails | JokerCardDetails | FacedownCardDetails
 /**
  * Internal states and related
  */
+type Actions = Update["action"];
+
 export type State = "settingUp" |
     "dealing" |
     "initialViewing" |
@@ -71,10 +69,15 @@ export type State = "settingUp" |
     "gameOver" |
     "exit";
 
+export type PermittedUpdates = {
+    [key in State]: Actions[];
+}
+
 export type PlayerData = {
     connected: boolean,
     name: string | null,
     ready: boolean
+    tablePosition: number
 };
 
 /**

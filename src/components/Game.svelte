@@ -1,7 +1,7 @@
 <script>
   import { fly } from "svelte/transition";
   /** @type {import('@sapper/app').goto } */
-  import {goto} from "@sapper/app";
+  import { goto } from "@sapper/app";
   /** @type {import('../types').ClientState} */
   export let state;
   /** @type {import('socket.io-client').Socket}*/
@@ -69,8 +69,9 @@
   }
 </script>
 
-<h3>In session</h3>
+<h3>Game {state.gameId}</h3>
 <p>Shared counter: {state.count}</p>
+<button on:click={handlePlusOne}>Add one!</button>
 <div class="event-bar">
   {#if eventText}
     <p in:fly={{ y: 10, duration: 500 }} out:fly={{ y: -10, duration: 500 }}>
@@ -78,7 +79,6 @@
     </p>
   {/if}
 </div>
-<button on:click={handlePlusOne}>Add one!</button>
 <ol>
   People:
   {#each state.players as player}

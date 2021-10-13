@@ -1,7 +1,11 @@
 // @ts-check
+import { shuffledDeck, shuffle } from "./deck";
+
 /** @typedef {import('./types').PlayerData} PlayerData */
 /** @typedef {import('./types').SendStateToSession} SendStateToSession */
+/** @typedef {import('./types').State} State */
 /** @typedef {import('./types').Update} Update */
+/** @typedef {import('./types').Card} Card */
 export default class Cambio {
   /**
    * @param {string} id
@@ -19,12 +23,19 @@ export default class Cambio {
     this.events = [];
     /** @type {Map<string, PlayerData>} Players */
     this.players = new Map();
-    /** @type {import('./types').State} */
+    /** @type {State} */
     this.state = "settingUp";
     /** @type {boolean} */
     this.isApplyingUpdate = false;
     /** @type {Array<{sessionId: string, data: Update}>} */
     this.updateQueue = [];
+    /** @type {Card[]} */
+    this.hiddenDeck = [];
+    /** @type {Card[]} */
+    this.hiddenPile = [];
+    /** @type {Card[]} */
+    this.positionedCards = [];
+    /** @type {import('./types').PermittedUpdates} */
     this.permittedUpdates = {
       settingUp: ["setName", "indicateReady", "leave"],
       dealing: ["leave"],
@@ -88,7 +99,76 @@ export default class Cambio {
   deal() {
     return new Promise((resolve) => {
       this.state = "dealing";
-      // Deal out cards to their positions
+      // Make a array of indices for each table position and shuffle it
+      /** @type {number[]} */
+      const shuffledNumbers = shuffle(
+        new Array(this.players.size).fill(null).map((_, i) => i)
+      );
+      // TODO: If there are X amount of players, deal two decks
+      this.deck = shuffledDeck();
+      for (const [key, value] of this.players.entries()) {
+        const playerData = this.players.get(key);
+        const tablePosition = /** @type {number} */ (shuffledNumbers.pop());
+        if (playerData) {
+          const updatedPlayerData = { ...playerData };
+          if (typeof tablePosition === "number")
+            updatedPlayerData.tablePosition = tablePosition;
+          this.players.set(key, updatedPlayerData);
+        }
+
+        // Indexes for the middle four cards of the two rows of four
+        [1, 2, 5, 6].forEach((tableSlot) => {
+          if (this.deck) {
+            const drawnCard = this.deck.shift();
+            if (drawnCard) {
+              /** @type {Card} */
+              const positionedCard = {
+                ...drawnCard,
+                position: {
+                  player: tablePosition,
+                  area: "table",
+                  tableSlot,
+                },
+                facedown: true,
+                canBeTapped: false,
+                selected: false,
+              };
+              this.positionedCards.push(positionedCard);
+            }
+          }
+        });
+      }
+
+      // Face down card for the deck
+      if (this.deck) {
+        const drawnCard = this.deck.shift();
+        if (drawnCard) {
+          this.positionedCards.push({
+            ...drawnCard,
+            position: {
+              area: "deck",
+            },
+            facedown: true,
+            canBeTapped: false,
+            selected: false,
+          });
+        }
+      }
+      // Face up card on the pile
+      if (this.deck) {
+        const drawnCard = this.deck.shift();
+        if (drawnCard) {
+          this.positionedCards.push({
+            ...drawnCard,
+            position: {
+              area: "pile",
+            },
+            facedown: false,
+            canBeTapped: false,
+            selected: false,
+          });
+        }
+      }
       this.sendStateToAll().then((_) => {
         resolve(this.initialViewing(10));
       });
@@ -119,7 +199,10 @@ export default class Cambio {
    * @param {Update} update
    */
   handleUpdate(sessionId, update) {
-    return new Promise((resolve) => {
+    // TODO: Remove this any
+    return new Promise((/** @type {any} */ resolve) => {
+      if (!this.permittedUpdates[this.state].includes(update.action)) resolve();
+
       switch (update.action) {
         case "setName":
           const existingPlayerData = this.players.get(sessionId);
@@ -201,6 +284,11 @@ export default class Cambio {
   /** @param {number} seconds How long players' get to view their bottom two cards at the game's start */
   initialViewing(seconds) {
     return new Promise((resolve) => {
+      console.log("Initial viewing.");
+      this.events.push({
+        type: "text",
+        message: "Get ready to memorise",
+      });
       this.state = "initialViewing";
       resolve(this.sendStateToAll());
     });
@@ -270,6 +358,9 @@ export default class Cambio {
           count: this.count,
           players: flattenedPlayerData,
           options: this.options,
+          // TODO: Facet this so players are only seeing their cards
+          // Remove the suit, rank and value from facedown cards
+          cards: this.positionedCards,
           events,
         };
         this.sendStateToSession(sessionId, clientState);
