@@ -18,6 +18,7 @@ export default class Cambio {
     this.options = options;
     // TODO: Remove
     this.count = 1;
+    this.currentTurnTablePosition = 0;
     this.clientStateId = 0;
     /** @type {import('./types').Events} */
     this.events = [];
@@ -138,7 +139,6 @@ export default class Cambio {
           }
         });
       }
-
       // Face down card for the deck
       if (this.deck) {
         const drawnCard = this.deck.shift();
@@ -154,6 +154,7 @@ export default class Cambio {
           });
         }
       }
+
       // Face up card on the pile
       if (this.deck) {
         const drawnCard = this.deck.shift();
@@ -169,6 +170,7 @@ export default class Cambio {
           });
         }
       }
+
       this.sendStateToAll().then((_) => {
         resolve(this.initialViewing(10));
       });
@@ -201,7 +203,10 @@ export default class Cambio {
   handleUpdate(sessionId, update) {
     // TODO: Remove this any
     return new Promise((/** @type {any} */ resolve) => {
-      if (!this.permittedUpdates[this.state].includes(update.action)) resolve();
+      if (!this.permittedUpdates[this.state].includes(update.action)) {
+        resolve();
+        return;
+      }
 
       switch (update.action) {
         case "setName":
@@ -308,6 +313,24 @@ export default class Cambio {
     }
   }
 
+  /** @returns {{currentTurnSessionId: string, currentTurnName: string | null, currentTurnTablePosition: number} | undefined} */
+  getCurrentTurnPlayerInfo() {
+    const playerInfo = Array.from(this.players.entries())
+      .map((playerInfo) => {
+        const [currentTurnSessionId, details] = playerInfo;
+        return {
+          currentTurnSessionId,
+          currentTurnName: details.name,
+          currentTurnTablePosition: details.tablePosition,
+        };
+      })
+      .find((p) => {
+        return p.currentTurnTablePosition === this.currentTurnTablePosition;
+      });
+
+    return playerInfo;
+  }
+
   /**
    * @param {string} sessionId
    * @param {boolean} isConnected
@@ -347,14 +370,21 @@ export default class Cambio {
       }
 
       const events = this.getAndEmptyEventQueue();
+      const currentTurnInfo = this.getCurrentTurnPlayerInfo();
+      // TODO: Is this the best default?
+      const currentTurnSessionId = currentTurnInfo ? currentTurnInfo.currentTurnSessionId : '';
 
       for (const sessionId of this.players.keys()) {
         const playerDetails = this.players.get(sessionId);
+        /** @type {import("./types").ClientState} */
         const clientState = {
           clientStateId: this.clientStateId,
           gameId: this.id,
           state: this.state,
+          currentTurnTablePosition: this.currentTurnTablePosition,
+          currentTurnSessionId,
           name: playerDetails ? playerDetails.name : null,
+          sessionId,
           count: this.count,
           players: flattenedPlayerData,
           options: this.options,

@@ -24,7 +24,7 @@ export type CardPosition = z.infer<typeof cardPositionSchema>;
 /**
  * Deck of cards basics
  */
-export type Suit = 'diamonds' | 'hearts' | 'clubs' | 'spades';
+export type Suit = 'diamonds' | 'hearts' | 'clubs' | 'spades' | null;
 
 export type Rank = number | 'ace' | 'king' | 'queen' | 'jack' | 'joker';
 
@@ -69,9 +69,7 @@ export type State = "settingUp" |
     "gameOver" |
     "exit";
 
-export type PermittedUpdates = {
-    [key in State]: Actions[];
-}
+export type PermittedUpdates = Record<State, Actions[]>;
 
 export type PlayerData = {
     connected: boolean,
@@ -98,7 +96,11 @@ export type ClientState = {
     gameId: string,
     state: State,
     name: string | null,
+    sessionId: string,
     count: number,
+    currentTurnTablePosition: number,
+    currentTurnSessionId: string,
+    cards: Card[],
     players: FlatPlayerData[],
     options: GameOptions,
     events: Events,

@@ -92,8 +92,6 @@
   }
 </script>
 
-<p>Session id: {gameId}</p>
-
 {#if status === "error"}
   <h1>Error</h1>
   <p>{errorMessage}</p>
