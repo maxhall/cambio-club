@@ -66,4 +66,48 @@ function shuffledDeck() {
   return shuffle(deck);
 }
 
-export { shuffledDeck, shuffle };
+class Timer {
+  /**
+   * @param {() => void} callback 
+   * @param {number} delay Time in milliseconds
+   */
+  constructor(callback, delay) {
+    this.callback = callback;
+    this.remaining = delay;
+    /** @type {number} */
+    this.startedTime;
+    /** @type {NodeJS.Timeout} */
+    this.timeout;
+    this.running = false;
+
+    this.start();
+  }
+
+  start() {
+    this.running = true;
+    this.startedTime = new Date().valueOf();
+    this.timeout = setTimeout(this.callback, this.remaining);
+  }
+
+  pause() {
+    this.running = false;
+    clearTimeout(this.timeout);
+    const timeElapsedSinceLastStart = new Date().valueOf() - this.startedTime;
+    this.remaining = this.remaining - timeElapsedSinceLastStart;
+  }
+
+  getRemainingTime() {
+    if (this.running) {
+      this.pause();
+      this.start();
+    }
+
+    return this.remaining;
+  }
+
+  isRunning() {
+    return this.running;
+  }
+}
+
+export { Timer, shuffledDeck, shuffle };
