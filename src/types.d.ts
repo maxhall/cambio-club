@@ -91,27 +91,28 @@ type Event = {
 
 export type Events = Event[];
 
+export type Countdown = {
+    subjectPlayer: string | null,
+    type: 'viewing' | 'snap',
+    remainingTime: number,
+    totalTime: number
+}
+
 export type ClientState = {
-    clientStateId: number
-    gameId: string,
-    state: State,
-    name: string | null,
-    sessionId: string,
-    count: number,
-    currentTurnTablePosition: number,
-    currentTurnSessionId: string,
+    canBeSnapped: boolean,
     cards: Card[],
-    players: FlatPlayerData[],
-    options: GameOptions,
+    clientStateId: number,
+    countdown?: Countdown,
+    currentTurnSessionId: string,
     events: Events,
-    countdown?: {
-        subjectPlayer: string,
-        type: 'viewing' | 'snap',
-        remainingTime: number,
-        totalTime: number
-    },
+    gameId: string,
+    name: string | null,
+    options: GameOptions,
+    players: FlatPlayerData[],
     // TODO: Should I make this required
     removeExistingTimers?: boolean
+    sessionId: string,
+    state: State,
 };
 
 export type SendStateToSession = (sessionId: string, clientState: ClientState) => void;

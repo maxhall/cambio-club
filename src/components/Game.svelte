@@ -21,14 +21,6 @@
   // TODO: If events get funky, find a non-reactive approach to this
   $: if (state.events.length > 0) processEvents(state.events);
 
-  // TODO: Remove function
-  function handlePlusOne() {
-    sendUpdate({
-      gameId: state.gameId,
-      action: "plusOne",
-    });
-  }
-
   function handleLeave() {
     console.log("Leaving");
     sendUpdate({
@@ -107,17 +99,18 @@
   </header>
   <Table
     cards={state.cards}
-    currentTurnPosition={state.currentTurnTablePosition}
+    currentTurnSessionId={state.currentTurnSessionId}
     players={state.players}
     {socket}
     gameId={state.gameId}
   />
   <section class="bottom-bar">
-    <button on:click={handlePlusOne}>{state.count}</button>
     {#if isMyTurn && state.state === "startingTurn"}
       <button on:click={handleCambio}>Cambio</button>
     {/if}
-    <button on:click={handleSnap}>Snap</button>
+    {#if state.canBeSnapped}
+      <button on:click={handleSnap}>Snap</button>
+    {/if}
     {#if isMyTurn && state.state === "startingTurn"}
       <button on:click={handlePass}>Pass</button>
     {/if}

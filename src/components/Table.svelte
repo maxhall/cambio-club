@@ -6,8 +6,8 @@
   /** @typedef {import('../types').Card} CardType */
   /** @type {CardType[]} */
   export let cards;
-  /** @type {number} */
-  export let currentTurnPosition;
+  /** @type {string} */
+  export let currentTurnSessionId;
   /** @typedef {import('../types').FlatPlayerData} FlatPlayerData */
   /** @type {FlatPlayerData[]} */
   export let players;
@@ -22,6 +22,12 @@
   const margin = 50;
   const playerLabelSize = 12;
   const centreToTablePositionLowerBound = 125;
+  const currentTurnPlayer = players.find((p) => {
+    p.sessionId === currentTurnSessionId;
+  });
+  const currentTurnPosition = currentTurnPlayer
+    ? currentTurnPlayer.tablePosition
+    : 0;
 
   /** @type {number | undefined} */
   let clientHeight;
@@ -198,7 +204,8 @@
           >
             <p
               class="label"
-              class:current-player={player.tablePosition === currentTurnPosition}
+              class:current-player={player.tablePosition ===
+                currentTurnPosition}
             >
               {player.name}
             </p>

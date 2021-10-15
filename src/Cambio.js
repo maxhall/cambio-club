@@ -1,11 +1,15 @@
 // @ts-check
-import { shuffledDeck, shuffle } from "./deck";
+import { Timer, shuffledDeck, shuffle } from "./utils";
 
 /** @typedef {import('./types').PlayerData} PlayerData */
 /** @typedef {import('./types').SendStateToSession} SendStateToSession */
 /** @typedef {import('./types').State} State */
 /** @typedef {import('./types').Update} Update */
 /** @typedef {import('./types').Card} Card */
+
+const INITIAL_VIEWING_TIME = 10 * 1000;
+const SNAP_SUSPENSION_TIME = 5 * 1000;
+
 export default class Cambio {
   /**
    * @param {string} id
@@ -16,26 +20,19 @@ export default class Cambio {
     this.id = id;
     this.sendStateToSession = sendStateToSession;
     this.options = options;
-    // TODO: Remove
-    this.count = 1;
-    this.currentTurnTablePosition = 0;
+
+    this.canBeSnapped = false;
     this.clientStateId = 0;
+    /** @type {string} */
+    this.currentTurnSessionId;
     /** @type {import('./types').Events} */
     this.events = [];
-    /** @type {Map<string, PlayerData>} Players */
-    this.players = new Map();
-    /** @type {State} */
-    this.state = "settingUp";
     /** @type {boolean} */
     this.isApplyingUpdate = false;
-    /** @type {Array<{sessionId: string, data: Update}>} */
-    this.updateQueue = [];
     /** @type {Card[]} */
     this.hiddenDeck = [];
     /** @type {Card[]} */
     this.hiddenPile = [];
-    /** @type {Card[]} */
-    this.positionedCards = [];
     /** @type {import('./types').PermittedUpdates} */
     this.permittedUpdates = {
       settingUp: ["setName", "indicateReady", "leave"],
@@ -63,6 +60,20 @@ export default class Cambio {
       finishingPileSwap: ["leave"],
       startingSpecialPower: ["leave"],
     };
+    /** @type {Map<string, PlayerData>} Players */
+    this.players = new Map();
+    /** @type {string} */
+    this.playerWhoSnapped;
+    /** @type {Card[]} */
+    this.positionedCards = [];
+    /** @type {null | Timer} */
+    this.snapSuspensionTimer = null;
+    /** @type {State} */
+    this.state = "settingUp";
+    /** @type {Array<{sessionId: string, data: Update}>} */
+    this.updateQueue = [];
+    /** @type {null | Timer} */
+    this.viewingTimer = null;
   }
 
   /** @param {string} sessionId */
@@ -172,7 +183,7 @@ export default class Cambio {
       }
 
       this.sendStateToAll().then((_) => {
-        resolve(this.initialViewing(10));
+        resolve(this.initialViewing(INITIAL_VIEWING_TIME));
       });
     });
   }
@@ -181,6 +192,33 @@ export default class Cambio {
     const currentEvents = this.events;
     this.events = [];
     return currentEvents;
+  }
+
+  /** @typedef {import('./types').Countdown} Countdown */
+  /** @returns {Countdown | undefined} */
+  getCurrentCountdown() {
+    // If there's a snap suspension on it takes precedence
+    if (this.snapSuspensionTimer && this.snapSuspensionTimer.isRunning()) {
+      return {
+        type: "snap",
+        remainingTime: this.snapSuspensionTimer.getRemainingTime(),
+        totalTime: SNAP_SUSPENSION_TIME,
+        subjectPlayer: this.playerWhoSnapped,
+      };
+    }
+    if (this.viewingTimer && this.viewingTimer.isRunning()) {
+      return {
+        type: "viewing",
+        remainingTime: this.viewingTimer.getRemainingTime(),
+        totalTime: INITIAL_VIEWING_TIME,
+        // If state is initial viewing then set null so everyone is subject to the timer,
+        // otherwise the timer is just for whoever's turn it is
+        subjectPlayer:
+          this.state == "initialViewing" ? null : this.currentTurnSessionId,
+      };
+    }
+
+    return undefined;
   }
 
   /** @returns {string[]} sessionIds */
@@ -237,19 +275,6 @@ export default class Cambio {
           }
           break;
 
-        // TODO: Remove
-        case "plusOne":
-          this.count++;
-          const moduloTen = this.count % 10;
-          if (moduloTen == 0 && this.count > 1) {
-            this.events.push({
-              type: "text",
-              message: "Wow, another ten clicks hey !!",
-            });
-          }
-          resolve(this.sendStateToAll());
-          break;
-
         case "leave":
           const player = this.players.get(sessionId);
           if (player) {
@@ -286,17 +311,73 @@ export default class Cambio {
     });
   }
 
-  /** @param {number} seconds How long players' get to view their bottom two cards at the game's start */
-  initialViewing(seconds) {
+  /** @param {number} initialViewingTime How many seconds players' get to view their bottom two cards at the game's start */
+  initialViewing(initialViewingTime) {
     return new Promise((resolve) => {
-      console.log("Initial viewing.");
+      this.canBeSnapped = true;
+
       this.events.push({
         type: "text",
-        message: "Get ready to memorise",
+        message: "Memorise your cards!",
       });
+
+      // Move any card in tableSlot 5 or 6 to viewingSlot 1 and 2 respectively
+      this.positionedCards = this.positionedCards.map((card) => {
+        if (
+          card.position.area == "table" &&
+          (card.position.tableSlot == 5 || card.position.tableSlot == 6)
+        ) {
+          /** @type {import("./types").CardPosition} */
+          const newPosition = {
+            player: card.position.player,
+            area: "viewing",
+            viewingSlot: card.position.tableSlot == 5 ? 0 : 1,
+          };
+          const updatedCard = card;
+          updatedCard.position = newPosition;
+          return updatedCard;
+        }
+        return card;
+      });
+
+      this.viewingTimer = new Timer(() => {
+        // Return viewingSlot 1 and 2 to tableSlot 5 and 6 respectively
+        this.positionedCards = this.positionedCards.map((card) => {
+          if (card.position.area == "viewing") {
+            /** @type {import("./types").CardPosition} */
+            const newPosition = {
+              player: card.position.player,
+              area: "table",
+              tableSlot: card.position.viewingSlot == 0 ? 5 : 6,
+            };
+            const updatedCard = card;
+            updatedCard.position = newPosition;
+            return updatedCard;
+          }
+          return card;
+        });
+
+        this.events.push({
+          type: "text",
+          message: "Initial viewing over!",
+        });
+
+        // TODO: Assess whether it's too unweildy to have to remember to null timers once they're done
+        // If it's not, add a note to the state management description at each spot it's needed
+        this.viewingTimer = null;
+
+        this.nextTurn();
+      }, initialViewingTime);
+
       this.state = "initialViewing";
+
       resolve(this.sendStateToAll());
     });
+  }
+
+  nextTurn() {
+    console.log("Next turn called!");
+    this.sendStateToAll();
   }
 
   processUpdateQueue() {
@@ -317,15 +398,16 @@ export default class Cambio {
   getCurrentTurnPlayerInfo() {
     const playerInfo = Array.from(this.players.entries())
       .map((playerInfo) => {
-        const [currentTurnSessionId, details] = playerInfo;
+        // Can destruture here because Array.from returns an array of [key, value] arrays from the Map
+        const [sessionId, details] = playerInfo;
         return {
-          currentTurnSessionId,
+          currentTurnSessionId: sessionId,
           currentTurnName: details.name,
           currentTurnTablePosition: details.tablePosition,
         };
       })
       .find((p) => {
-        return p.currentTurnTablePosition === this.currentTurnTablePosition;
+        return p.currentTurnSessionId === this.currentTurnSessionId;
       });
 
     return playerInfo;
@@ -359,6 +441,7 @@ export default class Cambio {
   /** @returns {Promise<void>} */
   sendStateToAll() {
     return new Promise((resolve) => {
+      // General data for the client state update
       this.clientStateId++;
       const flattenedPlayerData = [];
       for (const [key, value] of this.players.entries()) {
@@ -368,30 +451,35 @@ export default class Cambio {
             ...value,
           });
       }
-
       const events = this.getAndEmptyEventQueue();
       const currentTurnInfo = this.getCurrentTurnPlayerInfo();
       // TODO: Is this the best default?
-      const currentTurnSessionId = currentTurnInfo ? currentTurnInfo.currentTurnSessionId : '';
+      const currentTurnSessionId = currentTurnInfo
+        ? currentTurnInfo.currentTurnSessionId
+        : "";
 
+      // Customise for each player
       for (const sessionId of this.players.keys()) {
         const playerDetails = this.players.get(sessionId);
         /** @type {import("./types").ClientState} */
         const clientState = {
-          clientStateId: this.clientStateId,
-          gameId: this.id,
-          state: this.state,
-          currentTurnTablePosition: this.currentTurnTablePosition,
-          currentTurnSessionId,
-          name: playerDetails ? playerDetails.name : null,
-          sessionId,
-          count: this.count,
-          players: flattenedPlayerData,
-          options: this.options,
+          canBeSnapped: this.canBeSnapped,
           // TODO: Facet this so players are only seeing their cards
           // Remove the suit, rank and value from facedown cards
           cards: this.positionedCards,
-          events,
+          clientStateId: this.clientStateId,
+          countdown: this.getCurrentCountdown(),
+          currentTurnSessionId: this.currentTurnSessionId,
+          events: events.filter((event) => {
+            event.recipientSessionIds == undefined ||
+              event.recipientSessionIds.includes(sessionId);
+          }),
+          gameId: this.id,
+          name: playerDetails ? playerDetails.name : null,
+          options: this.options,
+          players: flattenedPlayerData,
+          sessionId,
+          state: this.state,
         };
         this.sendStateToSession(sessionId, clientState);
       }
