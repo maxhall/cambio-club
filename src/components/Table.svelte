@@ -15,6 +15,8 @@
   export let socket;
   /** @type {string} */
   export let gameId;
+  /** @type {string} */
+  export let thisClientSessionId;
 
   const cardWidth = 25;
   const cardHeight = cardWidth * 1.4;
@@ -22,12 +24,20 @@
   const margin = 50;
   const playerLabelSize = 12;
   const centreToTablePositionLowerBound = 125;
+  // TODO: Do these need to be reactive?
   const currentTurnPlayer = players.find((p) => {
     p.sessionId === currentTurnSessionId;
   });
   const currentTurnPosition = currentTurnPlayer
     ? currentTurnPlayer.tablePosition
     : 0;
+  const thisPlayer = players.find(p => {
+    return thisClientSessionId === p.sessionId;
+  });
+  // This is subtracted from each rotation calculation so the player's browser always
+  // shows their cards and info at the bottom
+  const localTablePositionOffset = (thisPlayer) ? thisPlayer.tablePosition : 0;
+
 
   /** @type {number | undefined} */
   let clientHeight;
@@ -129,7 +139,8 @@
         xLocal += (position.tableSlot % 4) * (cardWidth + cardGap);
         yLocal += centreToTablePositionOffset;
         if (position.tableSlot > 3) yLocal += cardHeight + cardGap;
-        rotation = (1 / numberOfPlayers) * position.player;
+        rotation =
+          (1 / numberOfPlayers) * (position.player - localTablePositionOffset);
         const tableRotationRadians = rotation * 360 * (Math.PI / 180);
         // Get the final positions https://academo.org/demos/rotation-about-point/
         xGlobal =
@@ -144,7 +155,8 @@
         xLocal += -0.5 * (cardWidth + cardGap);
         xLocal += position.viewingSlot * (cardWidth + cardGap);
         yLocal += centreToTablePositionOffset + 2 * (cardHeight + cardGap);
-        rotation = (1 / numberOfPlayers) * position.player;
+        rotation =
+          (1 / numberOfPlayers) * (position.player - localTablePositionOffset);
         const viewingRotationRadians = rotation * 360 * (Math.PI / 180);
         xGlobal =
           xLocal * Math.cos(viewingRotationRadians) -
@@ -166,7 +178,9 @@
    * @param {number} position
    */
   function correctNameOrientation(position) {
-    const positionRotation = (1 / players.length) * position;
+    // TODO: Check this is correct
+    const positionRotation =
+      (1 / players.length) * (position - localTablePositionOffset);
     if (positionRotation > 0.25 && positionRotation < 0.75) return true;
     return false;
   }
@@ -193,7 +207,8 @@
       {#each players as player}
         <div
           style="transform: rotate({(1 / players.length) *
-            player.tablePosition}turn); font-size: {playerLabelSize}px;"
+            (player.tablePosition -
+              localTablePositionOffset)}turn); font-size: {playerLabelSize}px;"
         >
           <div
             style="transform: translateY({playerLabelOffset}px) {correctNameOrientation(

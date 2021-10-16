@@ -26,7 +26,7 @@
       action: "leave",
     });
     socket.disconnect();
-    window.location.assign('/');
+    window.location.assign("/");
   }
 
   function handleCambio() {
@@ -98,26 +98,34 @@
   <Table
     cards={state.cards}
     currentTurnSessionId={state.currentTurnSessionId}
+    thisClientSessionId={state.sessionId}
     players={state.players}
     {socket}
     gameId={state.gameId}
   />
-  <section class="bottom-bar">
-    {#if isMyTurn && state.state === "startingTurn"}
-      <button on:click={handleCambio}>Cambio</button>
-    {/if}
-    {#if state.canBeSnapped}
-      <button on:click={handleSnap}>Snap</button>
-    {/if}
-    {#if isMyTurn && state.state === "startingTurn"}
-      <button on:click={handlePass}>Pass</button>
-    {/if}
+  <footer>
     {#if eventText}
-      <p in:fly={{ y: 10, duration: 500 }} out:fly={{ y: -100, duration: 500 }}>
+      <p
+        class="event-text"
+        in:fly={{ y: 10, duration: 500 }}
+        out:fly={{ y: -200, duration: 1500 }}
+      >
         {eventText}
       </p>
     {/if}
-  </section>
+    <div class="countdown"></div>
+    <section class="button-wrapper">
+      {#if isMyTurn && state.state === "startingTurn"}
+        <button on:click={handleCambio}>Cambio</button>
+      {/if}
+      {#if state.canBeSnapped}
+        <button on:click={handleSnap}>Snap</button>
+      {/if}
+      {#if isMyTurn && state.state === "startingTurn"}
+        <button on:click={handlePass}>Pass</button>
+      {/if}
+    </section>
+  </footer>
 </div>
 
 <style>
@@ -128,7 +136,7 @@
   :global(body) {
     margin: 0;
     box-sizing: border-box;
-    background-color: darkgreen;
+    background-color: green;
   }
 
   header {
@@ -138,13 +146,31 @@
     display: flex;
   }
 
-  .bottom-bar {
+  footer {
+    position: fixed;
+    bottom: 0;
     width: 100%;
+  }
+
+  .event-text {
+    font-size: 35px;
+    text-align: center;
+    text-transform: uppercase;
+    line-height: 40px;
+    margin: 0 auto;
+  }
+
+  .countdown {
+    width: 100%;
+    height: 10px;
+    background-color: orangered;
+  }
+
+  .button-wrapper {
     height: 50px;
     display: flex;
     justify-content: center;
     background-color: white;
-    position: fixed;
-    bottom: 0;
   }
+
 </style>

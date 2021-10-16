@@ -8,6 +8,7 @@ import { Timer, shuffledDeck, shuffle } from "./utils";
 /** @typedef {import('./types').Update} Update */
 /** @typedef {import('./types').Card} Card */
 
+const INITIAL_VIEWING_INTRO_PAUSE = 1.5 * 1000;
 const INITIAL_VIEWING_TIME = 10 * 1000;
 const SNAP_SUSPENSION_TIME = 5 * 1000;
 
@@ -184,7 +185,7 @@ export default class Cambio {
       }
 
       this.sendStateToAll().then((_) => {
-        resolve(this.initialViewing(INITIAL_VIEWING_TIME));
+        resolve(this.initialViewing());
       });
     });
   }
@@ -371,8 +372,7 @@ export default class Cambio {
     });
   }
 
-  /** @param {number} initialViewingTime How many seconds players' get to view their bottom two cards at the game's start */
-  initialViewing(initialViewingTime) {
+  initialViewing() {
     return new Promise((resolve) => {
       this.canBeSnapped = true;
 
@@ -427,11 +427,13 @@ export default class Cambio {
         this.viewingTimer = null;
 
         this.nextTurn();
-      }, initialViewingTime);
+      }, INITIAL_VIEWING_TIME);
 
       this.state = "initialViewing";
 
-      resolve(this.sendStateToAll());
+      setTimeout(() => {
+        resolve(this.sendStateToAll());
+      }, INITIAL_VIEWING_INTRO_PAUSE);
     });
   }
 
@@ -529,8 +531,7 @@ export default class Cambio {
           countdown: this.getCurrentCountdown(),
           currentTurnSessionId: this.currentTurnSessionId,
           events: events.filter((event) => {
-            event.recipientSessionIds == undefined ||
-              event.recipientSessionIds.includes(sessionId);
+            return (event.recipientSessionIds) ? event.recipientSessionIds.includes(sessionId) : event;
           }),
           gameId: this.id,
           name: playerDetails ? playerDetails.name : null,
