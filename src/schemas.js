@@ -74,11 +74,6 @@ const requestRematchUpdateSchema = z.object({
   action: z.literal("requestRematch"),
 });
 
-// TODO: Remove
-const plusOneUpdateSchema = z.object({
-  action: z.literal("plusOne"),
-});
-
 const gameId = z.object({
   gameId: z.string().length(4),
 });
@@ -94,6 +89,4 @@ export const updateSchema = z.union([
   gameId.merge(passUpdateSchema),
   gameId.merge(cambioUpdateSchema),
   gameId.merge(requestRematchUpdateSchema),
-  // TODO: Remove
-  gameId.merge(plusOneUpdateSchema),
 ]);

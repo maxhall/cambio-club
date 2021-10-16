@@ -1,7 +1,7 @@
 // NB: This logic tested and moved to utils.
 // Based on: https://stackoverflow.com/questions/3144711/find-the-time-left-in-a-settimeout/36389263#36389263
 class Timer {
-    // TODO: This probably wouldn't respond well to `start()` being called several times
+    // This probably wouldn't respond well to `start()` being called several times
     // nor does it prevent being restrated once it's finished
     /**
      * @param {() => void} callback 

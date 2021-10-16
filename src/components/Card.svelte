@@ -2,9 +2,11 @@
   import { tweened } from "svelte/motion";
   import { cubicOut } from "svelte/easing";
 
-  /** @type {import('../types').Rank} */
+  /** @typedef {import('../types').Rank} Rank */
+  /** @type {Rank | undefined} */
   export let rank;
-  /** @type {import('../types').Suit} */
+  /** @typedef {import('../types').Suit} Suit */
+  /** @type {Suit | undefined} */
   export let suit;
   /** @type {number} */
   export let width;

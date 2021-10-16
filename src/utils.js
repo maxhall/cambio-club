@@ -68,8 +68,11 @@ function shuffledDeck() {
 
 class Timer {
   /**
-   * @param {() => void} callback 
+   * @param {() => void} callback
    * @param {number} delay Time in milliseconds
+   * 
+   * This probably wouldn't respond well to `start()` being called several times 
+   * nor does it prevent being restrated once it's finished
    */
   constructor(callback, delay) {
     this.callback = callback;

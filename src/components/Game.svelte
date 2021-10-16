@@ -16,7 +16,7 @@
   const isMyTurn = state.sessionId === state.currentTurnSessionId;
 
   $: console.log(state);
-  // TODO: If events get funky, find a non-reactive approach to this
+  // If events get funky, find a non-reactive approach to this
   $: if (state.events.length > 0) processEvents(state.events);
 
   async function handleLeave() {

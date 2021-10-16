@@ -110,8 +110,6 @@ export type ClientState = {
     name: string | null,
     options: GameOptions,
     players: FlatPlayerData[],
-    // TODO: Should I make this required
-    removeExistingTimers?: boolean
     sessionId: string,
     state: State,
 };
