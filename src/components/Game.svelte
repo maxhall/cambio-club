@@ -1,8 +1,6 @@
 <script>
   import Table from "./Table.svelte";
   import { fly } from "svelte/transition";
-  /** @type {import('@sapper/app').goto } */
-  import { goto } from "@sapper/app";
   /** @type {import('../types').ClientState} */
   export let state;
   /** @type {import('socket.io-client').Socket} */
@@ -21,14 +19,14 @@
   // TODO: If events get funky, find a non-reactive approach to this
   $: if (state.events.length > 0) processEvents(state.events);
 
-  function handleLeave() {
+  async function handleLeave() {
     console.log("Leaving");
     sendUpdate({
       gameId: state.gameId,
       action: "leave",
     });
     socket.disconnect();
-    goto("/");
+    window.location.assign('/');
   }
 
   function handleCambio() {
