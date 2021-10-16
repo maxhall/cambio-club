@@ -32,13 +32,15 @@
     easing: cubicOut,
   });
   $: $tweenedTransforms = transforms;
+
   const suitSymbols = {
     clubs: "&clubs;",
     hearts: "&hearts;",
     diamonds: "&diams;",
     spades: "&spades;",
   };
-  const suitSymbol = suit ? suitSymbols[suit] : "&starf;";
+  $: suitSymbol = (suit && typeof suit == 'string') ? suitSymbols[suit] : "&starf;";
+  
   const rankCharacters = {
     ace: "A",
     king: "K",
@@ -46,7 +48,6 @@
     jack: "J",
     joker: "Jo",
   };
-
   $: rankCharacter = (rank && typeof rank == 'string') ? rankCharacters[rank] : rank;
 
   function handleClick() {
