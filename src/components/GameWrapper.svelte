@@ -17,6 +17,7 @@
   let nameError;
   /** @type {import('../types').ClientState} */
   let state;
+  let hasIndicatedReady = false;
 
   const socket = io({ autoConnect: false });
 
@@ -80,6 +81,7 @@
   }
 
   function handleReady() {
+    hasIndicatedReady = true;
     sendUpdate({
       gameId,
       action: "indicateReady",
@@ -119,8 +121,9 @@
       <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
     {/each}
   </ol>
-  <p>If they're ready hide the ready button</p>
-  <button on:click={handleReady}>I'm ready to play</button>
+  {#if !hasIndicatedReady}
+    <button on:click={handleReady}>I'm ready to play</button>
+  {/if}
 {:else if status === "playing"}
   <Game {state} {socket} />
 {/if}
