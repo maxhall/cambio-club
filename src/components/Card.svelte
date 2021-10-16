@@ -45,7 +45,7 @@
     joker: "Jo",
   };
 
-  const rankCharacter = typeof rank == "string" ? rankCharacters[rank] : rank;
+  $: rankCharacter = (rank && typeof rank == 'string') ? rankCharacters[rank] : rank;
 
   function handleClick() {
     if (canBeTapped) {

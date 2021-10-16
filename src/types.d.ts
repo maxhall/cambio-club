@@ -31,11 +31,12 @@ export type Rank = number | 'ace' | 'king' | 'queen' | 'jack' | 'joker';
 type JokerCardDetails = { suit: null, rank: 'joker' };
 
 type OrdinaryCardDetails = {
-    suit: Suit,
-    rank: Rank
+    suit?: Suit,
+    rank?: Rank
 };
 
 export type Card = (OrdinaryCardDetails | JokerCardDetails) & {
+    value?: number,
     position: CardPosition,
     facedown: boolean,
     canBeTapped: boolean,

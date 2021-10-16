@@ -1,4 +1,5 @@
 // @ts-check
+import { cloneDeep } from "lodash";
 import { Timer, shuffledDeck, shuffle } from "./utils";
 
 /** @typedef {import('./types').PlayerData} PlayerData */
@@ -221,6 +222,65 @@ export default class Cambio {
     return undefined;
   }
 
+  /**
+   * Returns an array of positioned cards stripped of details
+   * the player matching the supplied sessionId should not know
+   * @param {string} sessionId
+   * @returns {Card[]}
+   */
+  getMaskedCardsForClient(sessionId) {
+    console.log(`Masking cards for ${sessionId}`)
+    let stripCanBeTapped = true;
+    // If we're in snap suspension and you called it, you need to be able to tap
+    if (this.state == "snapSuspension" && this.playerWhoSnapped == sessionId) {
+      stripCanBeTapped = false;
+    }
+    // If we're not in snap suspension, you can tap if it's your turn
+    if (
+      this.state !== "snapSuspension" &&
+      this.currentTurnSessionId == sessionId
+    ) {
+      stripCanBeTapped = false;
+    }
+
+    return this.positionedCards.map((card) => {
+      console.log(`Original card:`)
+      console.log(card)
+      const updatedCard = cloneDeep(card);
+
+      // In `gameOver` all cards are faceup expect the deck
+      if (this.state == "gameOver" && updatedCard.position.area !== "deck") {
+        console.log('Never reach here.')
+        updatedCard.facedown = false;
+      } else {
+        // Get the tablePosition matching the sessionId
+        const thisPlayerTablePosition =
+          this.players.get(sessionId)?.tablePosition;
+        // All facedown unless they're on the pile or in your viewing area
+        if (
+          updatedCard.position.area == "pile" ||
+          (updatedCard.position.area == "viewing" &&
+            updatedCard.position.player == thisPlayerTablePosition)
+        ) {
+          updatedCard.facedown = false;
+        }
+      }
+
+      // Prevent tapping if it's not your turn
+      if (stripCanBeTapped) updatedCard.canBeTapped = false;
+
+      // Strip facedown cards of suit, rank and value
+      if (updatedCard.facedown) {
+        delete updatedCard.rank;
+        delete updatedCard.suit;
+        delete updatedCard.value;
+      }
+      console.log(`Updated card:`)
+      console.log(updatedCard);
+      return updatedCard;
+    });
+  }
+
   /** @returns {string[]} sessionIds */
   getPlayerSessionIds() {
     const playerArray = [];
@@ -322,7 +382,7 @@ export default class Cambio {
       });
 
       // Move any card in tableSlot 5 or 6 to viewingSlot 1 and 2 respectively
-      this.positionedCards = this.positionedCards.map((card) => {
+      this.positionedCards.forEach((card) => {
         if (
           card.position.area == "table" &&
           (card.position.tableSlot == 5 || card.position.tableSlot == 6)
@@ -342,7 +402,7 @@ export default class Cambio {
 
       this.viewingTimer = new Timer(() => {
         // Return viewingSlot 1 and 2 to tableSlot 5 and 6 respectively
-        this.positionedCards = this.positionedCards.map((card) => {
+        this.positionedCards.forEach((card) => {
           if (card.position.area == "viewing") {
             /** @type {import("./types").CardPosition} */
             const newPosition = {
@@ -464,9 +524,7 @@ export default class Cambio {
         /** @type {import("./types").ClientState} */
         const clientState = {
           canBeSnapped: this.canBeSnapped,
-          // TODO: Facet this so players are only seeing their cards
-          // Remove the suit, rank and value from facedown cards
-          cards: this.positionedCards,
+          cards: this.getMaskedCardsForClient(sessionId),
           clientStateId: this.clientStateId,
           countdown: this.getCurrentCountdown(),
           currentTurnSessionId: this.currentTurnSessionId,
