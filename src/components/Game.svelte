@@ -1,6 +1,7 @@
 <script>
   import Table from "./Table.svelte";
   import { fly } from "svelte/transition";
+  import CountdownBar from "./CountdownBar.svelte";
   /** @type {import('../types').ClientState} */
   export let state;
   /** @type {import('socket.io-client').Socket} */
@@ -113,7 +114,7 @@
         {eventText}
       </p>
     {/if}
-    <div class="countdown"></div>
+    <CountdownBar countdown={state.countdown} />
     <section class="button-wrapper">
       {#if isMyTurn && state.state === "startingTurn"}
         <button on:click={handleCambio}>Cambio</button>
@@ -160,17 +161,10 @@
     margin: 0 auto;
   }
 
-  .countdown {
-    width: 100%;
-    height: 10px;
-    background-color: orangered;
-  }
-
   .button-wrapper {
     height: 50px;
     display: flex;
     justify-content: center;
     background-color: white;
   }
-
 </style>
