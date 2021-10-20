@@ -2,11 +2,12 @@
 import { cloneDeep } from "lodash";
 import { Timer, shuffledDeck, shuffle } from "./utils";
 
+/** @typedef {import('./types').Card} Card */
+/** @typedef {import("./types").CardPosition} CardPosition */
 /** @typedef {import('./types').PlayerData} PlayerData */
 /** @typedef {import('./types').SendStateToSession} SendStateToSession */
 /** @typedef {import('./types').State} State */
 /** @typedef {import('./types').Update} Update */
-/** @typedef {import('./types').Card} Card */
 
 const INITIAL_VIEWING_INTRO_PAUSE = 1.5 * 1000;
 const INITIAL_VIEWING_TIME = 10 * 1000;
@@ -110,6 +111,26 @@ export default class Cambio {
     );
   }
 
+  /** @param {CardPosition} cardPosition */
+  blindSwapOwnChoice(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  blindSwapOtherChoice(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  cambio() {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
   deal() {
     return new Promise((resolve) => {
       this.state = "dealing";
@@ -190,6 +211,41 @@ export default class Cambio {
     });
   }
 
+  /** @param {CardPosition} cardPosition */
+  finishDeckSwap(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  finishPileSwap(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  finishMateLook(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  finishMineLook(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  finishQueenLook(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
   getAndEmptyEventQueue() {
     const currentEvents = this.events;
     this.events = [];
@@ -230,7 +286,6 @@ export default class Cambio {
    * @returns {Card[]}
    */
   getMaskedCardsForClient(sessionId) {
-    console.log(`Masking cards for ${sessionId}`)
     let stripCanBeTapped = true;
     // If we're in snap suspension and you called it, you need to be able to tap
     if (this.state == "snapSuspension" && this.playerWhoSnapped == sessionId) {
@@ -245,13 +300,10 @@ export default class Cambio {
     }
 
     return this.positionedCards.map((card) => {
-      console.log(`Original card:`)
-      console.log(card)
       const updatedCard = cloneDeep(card);
 
       // In `gameOver` all cards are faceup expect the deck
       if (this.state == "gameOver" && updatedCard.position.area !== "deck") {
-        console.log('Never reach here.')
         updatedCard.facedown = false;
       } else {
         // Get the tablePosition matching the sessionId
@@ -276,8 +328,6 @@ export default class Cambio {
         delete updatedCard.suit;
         delete updatedCard.value;
       }
-      console.log(`Updated card:`)
-      console.log(updatedCard);
       return updatedCard;
     });
   }
@@ -350,25 +400,83 @@ export default class Cambio {
           break;
 
         case "snap":
-          resolve(this.sendStateToAll());
+          resolve(this.startSnapSuspension());
           break;
 
         case "tapCard":
-          resolve(this.sendStateToAll());
+          if (
+            this.state === "snapSuspension" &&
+            sessionId === this.playerWhoSnapped
+          ) {
+            resolve(this.resolveSnap(update.cardPosition));
+          } else if (sessionId === this.currentTurnSessionId) {
+            // This is an ugly if-else mess because standalone if statements don't 100% guarantee
+            // the state won't shift halfway through evalutation and switch is ever more verbose
+            if (
+              this.state == "startingTurn" &&
+              update.cardPosition.area === "deck"
+            ) {
+              resolve(this.startDeckSwap(update.cardPosition));
+            } else if (
+              this.state == "startingTurn" &&
+              update.cardPosition.area === "pile"
+            ) {
+              resolve(this.startPileSwap(update.cardPosition));
+            } else if (this.state == "awaitingDeckSwapChoice") {
+              resolve(this.finishDeckSwap(update.cardPosition));
+            } else if (this.state == "awaitingPileSwapChoice") {
+              resolve(this.finishPileSwap(update.cardPosition));
+            } else if (this.state == "awaitingMateLookChoice") {
+              resolve(this.finishMateLook(update.cardPosition));
+            } else if (this.state == "awaitingMineLookChoice") {
+              resolve(this.finishMineLook(update.cardPosition));
+            } else if (this.state == "awaitingQueenLookChoice") {
+              resolve(this.finishQueenLook(update.cardPosition));
+            } else if (this.state == "awaitingQueenSwapOwnChoice") {
+              resolve(this.queenOwnChoice(update.cardPosition));
+            } else if (this.state == "awaitingQueenSwapOtherChoice") {
+              resolve(this.queenOtherChoice(update.cardPosition));
+            } else if (this.state == "awaitingBlindSwapOwnChoice") {
+              resolve(this.blindSwapOwnChoice(update.cardPosition));
+            } else if (this.state == "awaitingBlindSwapOtherChoice") {
+              resolve(this.blindSwapOtherChoice(update.cardPosition));
+            }
+          }
           break;
 
         case "pass":
-          resolve(this.sendStateToAll());
+          if (this.currentTurnSessionId === sessionId) {
+            resolve(this.nextTurn());
+          }
           break;
 
         case "cambio":
-          resolve(this.sendStateToAll());
+          if (this.currentTurnSessionId === sessionId) {
+            resolve(this.cambio());
+          }
           break;
 
         case "requestRematch":
-          resolve(this.sendStateToAll());
+          const rematchPlayerData = this.players.get(sessionId);
+          if (rematchPlayerData) {
+            const updatedPlayerData = { ...rematchPlayerData };
+            updatedPlayerData.hasRequestedRematch = true;
+            this.players.set(sessionId, updatedPlayerData);
+          }
+
+          const allRequestedRematch = [...this.players.values()].every(
+            (p) => p.hasRequestedRematch
+          );
+          if (allRequestedRematch) {
+            resolve(this.rematch());
+          } else {
+            resolve(this.sendStateToAll());
+          }
           break;
       }
+
+      // If things gets suss try removing
+      resolve();
     });
   }
 
@@ -475,6 +583,33 @@ export default class Cambio {
     return playerInfo;
   }
 
+  /** @param {CardPosition} cardPosition */
+  queenOwnChoice(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  queenOtherChoice(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  rematch() {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  resolveSnap(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
   /**
    * @param {string} sessionId
    * @param {boolean} isConnected
@@ -531,7 +666,9 @@ export default class Cambio {
           countdown: this.getCurrentCountdown(),
           currentTurnSessionId: this.currentTurnSessionId,
           events: events.filter((event) => {
-            return (event.recipientSessionIds) ? event.recipientSessionIds.includes(sessionId) : event;
+            return event.recipientSessionIds
+              ? event.recipientSessionIds.includes(sessionId)
+              : event;
           }),
           gameId: this.id,
           name: playerDetails ? playerDetails.name : null,
@@ -544,6 +681,26 @@ export default class Cambio {
       }
 
       resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  startDeckSwap(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  startPileSwap(cardPosition) {
+    return new Promise((resolve) => {
+      // resolve();
+    });
+  }
+
+  startSnapSuspension() {
+    return new Promise((resolve) => {
+      // resolve();
     });
   }
 

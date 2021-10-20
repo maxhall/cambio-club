@@ -75,8 +75,9 @@ export type PermittedUpdates = Record<State, Actions[]>;
 export type PlayerData = {
     connected: boolean,
     name: string | null,
-    ready: boolean
-    tablePosition: number
+    ready: boolean,
+    tablePosition: number,
+    hasRequestedRematch: boolean
 };
 
 /**
