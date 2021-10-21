@@ -3,8 +3,8 @@
   import Card from "./Card.svelte";
   import { fade } from "svelte/transition";
 
-  /** @typedef {import('../types').Card} CardType */
-  /** @type {CardType[]} */
+  /** @typedef {import('../types').MaskedCard} MaskedCardType */
+  /** @type {MaskedCardType[]} */
   export let cards;
   /** @type {string} */
   export let currentTurnSessionId;
@@ -76,7 +76,7 @@
   }
 
   /**
-   * @param {CardType[]} cards
+   * @param {MaskedCardType[]} cards
    * @param {number} numberOfPlayers
    * @param {number} cardWidth
    * @param {number} cardGap

@@ -87,16 +87,24 @@ class Timer {
   }
 
   start() {
+    console.log('Timer started');
     this.running = true;
     this.startedTime = new Date().valueOf();
     this.timeout = setTimeout(this.callback, this.remaining);
   }
 
   pause() {
+    console.log('Timer paused');
     this.running = false;
     clearTimeout(this.timeout);
     const timeElapsedSinceLastStart = new Date().valueOf() - this.startedTime;
     this.remaining = this.remaining - timeElapsedSinceLastStart;
+  }
+
+  remove() {
+    console.log(`Removing timer`);
+    this.running = false;
+    clearTimeout(this.timeout);
   }
 
   getRemainingTime() {

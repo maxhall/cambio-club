@@ -109,7 +109,7 @@
       <p
         class="event-text"
         in:fly={{ y: 10, duration: 500 }}
-        out:fly={{ y: -200, duration: 1500 }}
+        out:fly={{ y: 10, duration: 1000 }}
       >
         {eventText}
       </p>
