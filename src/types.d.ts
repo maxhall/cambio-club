@@ -82,7 +82,8 @@ export type PlayerData = {
     name: string | null,
     ready: boolean,
     tablePosition: number,
-    hasRequestedRematch: boolean
+    hasRequestedRematch: boolean,
+    hasTakenFinalTurn: boolean
 };
 
 /**

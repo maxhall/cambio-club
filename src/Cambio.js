@@ -34,6 +34,8 @@ export default class Cambio {
     this.events = [];
     /** @type {boolean} */
     this.isApplyingUpdate = false;
+    /** @type {boolean} */
+    this.isCambioRound = false;
     /** @type {Card[]} */
     this.hiddenDeck = [];
     /** @type {Card[]} */
@@ -77,6 +79,8 @@ export default class Cambio {
     this.state = "settingUp";
     /** @type {State} */
     this.stateBeforeSnapSuspension;
+    /** @type {Card[]} */
+    this.cardsTappableBeforeSnapSuspension;
     /** @type {Array<{sessionId: string, data: Update}>} */
     this.updateQueue = [];
     /** @type {null | Timer} */
@@ -217,6 +221,12 @@ export default class Cambio {
       this.hiddenPile = [];
     }
     return /** @type {Card} */ (this.hiddenDeck.shift());
+  }
+
+  endGame() {
+    return new Promise((resolve) => {
+      console.log("Ending game!");
+    });
   }
 
   /** @param {CardPosition} cardPosition */
@@ -411,6 +421,7 @@ export default class Cambio {
           break;
 
         case "snap":
+          console.log('Snap case in handleUpdate');
           resolve(this.startSnapSuspension(sessionId));
           break;
 
@@ -548,6 +559,7 @@ export default class Cambio {
         // TODO: Is there a race condition here if the next turn is being resolved before the state changes?
         // Maybe add something about to change the state before anything happens
         // The alternative is applying an update lock while the callback is executed but that feels messy
+        console.log("Calling next turn");
         this.nextTurn();
       }, INITIAL_VIEWING_TIME);
 
@@ -560,8 +572,69 @@ export default class Cambio {
   }
 
   nextTurn() {
-    console.log("Next turn called!");
-    this.sendStateToAll();
+    return new Promise((resolve) => {
+      console.log("Next turn");
+      const playersYetToTakeFinalTurn = [...this.players.values()].filter(
+        (p) => p.hasTakenFinalTurn !== true
+      );
+
+      if (this.isCambioRound && playersYetToTakeFinalTurn.length === 0) {
+        resolve(this.endGame());
+        return;
+      }
+
+      // Handle the first turn where currentTurnSessionId hasn't yet been defined
+      const currentTurnTablePosition = /** @type {number} */ (
+        this.currentTurnSessionId
+          ? this.players.get(this.currentTurnSessionId)?.tablePosition
+          : 0
+      );
+      console.log(`Current turn table position: ${currentTurnTablePosition}`);
+      const nextTurnTablePosition =
+        (currentTurnTablePosition + 1) % this.players.size;
+      console.log(`Next turn table position: ${nextTurnTablePosition}`);
+      const nextTurnSessionId = /** @type {string} */ (
+        [...this.players.keys()].find((sessionId) => {
+          const tablePositionMatchingSessionId =
+            this.players.get(sessionId)?.tablePosition;
+          if (tablePositionMatchingSessionId === nextTurnTablePosition) {
+            return true;
+          } else {
+            return false;
+          }
+        })
+      );
+      console.log(`Next turn session id: ${nextTurnSessionId}`);
+      this.currentTurnSessionId = nextTurnSessionId;
+
+      if (this.isCambioRound) {
+        const currentPlayerData = this.players.get(this.currentTurnSessionId);
+        if (currentPlayerData) {
+          this.players.set(this.currentTurnSessionId, {
+            ...currentPlayerData,
+            hasTakenFinalTurn: true,
+          });
+        }
+      }
+
+      this.events.push({
+        type: "text",
+        message: "Your turn!",
+        recipientSessionIds: [nextTurnSessionId],
+      });
+
+      this.positionedCards.forEach((card) => {
+        if (card.position.area === "deck" || card.position.area === "pile") {
+          card.canBeTapped = true;
+        } else {
+          card.canBeTapped = false;
+        }
+      });
+
+      this.state = "startingTurn";
+
+      resolve(this.sendStateToAll());
+    });
   }
 
   processUpdateQueue() {
@@ -663,7 +736,11 @@ export default class Cambio {
       this.state = "resolvingSnap";
       this.snapSuspensionTimer?.remove();
       // TODO: is there a more elegant way of comparing the objects?
-      const cardAtSnapPosition = /** @type {Card} */ (this.positionedCards.find((card) => isEqual(card.position, snappedCardPosition)));
+      const cardAtSnapPosition = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, snappedCardPosition)
+        )
+      );
       console.log(`Snapped card:`);
       console.log(cardAtSnapPosition);
       const pileCard = this.positionedCards.find(
@@ -687,16 +764,31 @@ export default class Cambio {
         };
       } else {
         const snappingPlayerName = this.players.get(sessionId)?.name;
-        const cardTitle = (cardAtSnapPosition.rank === "joker") ? `joker` : `${cardAtSnapPosition.rank} of ${cardAtSnapPosition.suit}`;
+        const cardTitle =
+          cardAtSnapPosition.rank === "joker"
+            ? `joker`
+            : `${cardAtSnapPosition.rank} of ${cardAtSnapPosition.suit}`;
         this.events.push({
-          type: 'text',
-          message: `${snappingPlayerName} tried to snap a ${cardTitle} lol They get a penalty.`
-        })
+          type: "text",
+          message: `${snappingPlayerName} tried to snap a ${cardTitle} lol They get a penalty.`,
+        });
         this.penaliseForFailedSnap(sessionId);
       }
 
       // Restore presnapped state
       this.state = this.stateBeforeSnapSuspension;
+      this.positionedCards.forEach((card) => {
+        const matchingCard = this.cardsTappableBeforeSnapSuspension.find(
+          (c) => {
+            return c.rank === card.rank && c.suit === card.suit;
+          }
+        );
+        if (matchingCard) {
+          card.canBeTapped = true;
+        } else {
+          card.canBeTapped = false;
+        }
+      });
       if (this.viewingTimer) this.viewingTimer.start();
 
       resolve(this.sendStateToAll());
@@ -794,27 +886,53 @@ export default class Cambio {
   /** @param {string} sessionId */
   startSnapSuspension(sessionId) {
     return new Promise((resolve) => {
+      console.log("Starting snap suspension!");
       this.stateBeforeSnapSuspension = this.state;
+      // Saves a reference to each card that was previously tappable
+      this.cardsTappableBeforeSnapSuspension = this.positionedCards.filter(
+        (card) => card.canBeTapped
+      );
       if (this.viewingTimer) this.viewingTimer.pause();
       this.state = "snapSuspension";
       this.canBeSnapped = false;
       this.playerWhoSnapped = sessionId;
       const snappingPlayerName = this.players.get(sessionId)?.name;
+
       this.events.push({
         type: "text",
         message: `${snappingPlayerName} snapped!`,
+        recipientSessionIds: [...this.players.keys()].filter(id => id !== sessionId),
       });
+
+      this.events.push({
+        type: "text",
+        message: `Choose the card to snap`,
+        recipientSessionIds: [sessionId],
+      });
+
       this.snapSuspensionTimer = new Timer(() => {
         // If this elapses they haven't made a selection so penalise
         this.snapSuspensionTimer?.remove();
         // TODO: Add a graphic event for this
         this.events.push({
-          type: 'text',
-          message: `${snappingPlayerName} gets a penalty for not snapping in time`
-        })
+          type: "text",
+          message: `${snappingPlayerName} gets a penalty for not snapping in time`,
+        });
         this.penaliseForFailedSnap(sessionId);
         // Restore state
         this.state = this.stateBeforeSnapSuspension;
+        this.positionedCards.forEach((card) => {
+          const matchingCard = this.cardsTappableBeforeSnapSuspension.find(
+            (c) => {
+              return c.rank === card.rank && c.suit === card.suit;
+            }
+          );
+          if (matchingCard) {
+            card.canBeTapped = true;
+          } else {
+            card.canBeTapped = false;
+          }
+        });
         // TODO: Am I sure all the viewing timers are cleared once they end?
         if (this.viewingTimer) this.viewingTimer.start();
         this.sendStateToAll();
