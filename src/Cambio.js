@@ -46,6 +46,7 @@ export default class Cambio {
       dealing: ["leave"],
       initialViewing: ["snap", "leave"],
       snapSuspension: ["tapCard", "leave"],
+      awaitingSnapResolutionChoice: ["tapCard", "leave"],
       startingTurn: ["tapCard", "snap", "cambio", "pass", "leave"],
       awaitingDeckSwapChoice: ["tapCard", "snap", "leave"],
       awaitingPileSwapChoice: ["tapCard", "snap", "leave"],
@@ -73,6 +74,8 @@ export default class Cambio {
     this.playerWhoSnapped;
     /** @type {Card[]} */
     this.positionedCards = [];
+    /** @type {CardPosition} */
+    this.savedSnappedCardPosition;
     /** @type {null | Timer} */
     this.snapSuspensionTimer = null;
     /** @type {State} */
@@ -142,12 +145,12 @@ export default class Cambio {
   deal() {
     return new Promise((resolve) => {
       this.state = "dealing";
+      console.log("Dealing");
       // Make a array of indices for each table position and shuffle it
       /** @type {number[]} */
       const shuffledNumbers = shuffle(
         new Array(this.players.size).fill(null).map((_, i) => i)
       );
-      // TODO: If there are X amount of players, deal two decks
       this.hiddenDeck = shuffledDeck();
       for (const [key, value] of this.players.entries()) {
         const playerData = this.players.get(key);
@@ -232,7 +235,59 @@ export default class Cambio {
   /** @param {CardPosition} cardPosition */
   finishDeckSwap(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      this.state = "finishingDeckSwap";
+      const currentPlayerTablePosition = this.players.get(
+        this.currentTurnSessionId
+      )?.tablePosition;
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+      const viewingSlotCard = /** @type {Card} */ (
+        this.positionedCards.find(
+          (c) =>
+            c.position.area === "viewing" &&
+            c.position.player === currentPlayerTablePosition
+        )
+      );
+      const pileCard = /** @type {Card} */ (
+        this.positionedCards.find((c) => c.position.area === "pile")
+        );
+
+      // Push the pile card on to the hidden pile
+      this.hiddenPile.unshift(pileCard);
+      this.positionedCards = this.positionedCards.filter(
+        (card) => card.position.area !== "pile"
+      );
+
+      // If the tapped card was the pile,
+      if (cardPosition.area === "pile") {
+        // Move the card from the viewing slot to the pile
+        viewingSlotCard.position = {
+          area: "pile",
+        };
+      } else if (
+        cardPosition.area === "table" &&
+        cardPosition.player === currentPlayerTablePosition
+      ) {
+        // Move the deck card in the first viewing slot to the spot that was tapped
+        viewingSlotCard.position = cardPosition;
+        // And move the tapped card to the pile
+        tappedCard.position = {
+          area: "pile",
+        };
+      } else {
+        // The card isn't valid
+        resolve(null);
+        return;
+      }
+
+      // Set 'canBeSnapped' to true and make the snap button active. Send the state.
+      this.canBeSnapped = true;
+      this.sendStateToAll();
+
+      resolve(this.startSpecialPower());
     });
   }
 
@@ -254,6 +309,40 @@ export default class Cambio {
   finishMineLook(cardPosition) {
     return new Promise((resolve) => {
       // resolve();
+    });
+  }
+
+  /** @param {CardPosition} cardPosition */
+  finishSnapResolution(cardPosition) {
+    return new Promise((resolve) => {
+      console.log("Finishing snap resolution!");
+
+      const snappingPlayerTablePosition = /** @type {number} */ (
+        this.players.get(this.playerWhoSnapped)?.tablePosition
+      );
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+
+      console.log(`Snapping player table position:`);
+      console.log(snappingPlayerTablePosition);
+      console.log(`Snapping player table position:`);
+      console.log(snappingPlayerTablePosition);
+      console.log(`Saved snapped card position:`);
+      console.log(this.savedSnappedCardPosition);
+
+      // If the tapped card is in the snapping players table or viewing area, move it to the savedSnappedCardPosition that was just vacated
+      if (
+        (cardPosition.area === "table" || cardPosition.area === "viewing") &&
+        cardPosition.player === snappingPlayerTablePosition
+      ) {
+        tappedCard.position = this.savedSnappedCardPosition;
+
+        this.restorePresnapState();
+        resolve(this.sendStateToAll());
+      }
     });
   }
 
@@ -298,6 +387,28 @@ export default class Cambio {
   }
 
   /**
+   * @param {number} playerTablePosition
+   * @returns {number} The index of the first open tableSlot for that player
+   */
+  getFirstAvailableTableSlot(playerTablePosition) {
+    const tableCards = this.positionedCards.filter(
+      (c) =>
+        c.position.area === "table" && c.position.player === playerTablePosition
+    );
+    // With an array of length TABLE_CARD_SLOTS find the first index without a card in that table slot
+    const firstAvailableTableSlot = new Array(TABLE_CARD_SLOTS)
+      .fill(null)
+      .findIndex((_, i) => {
+        const cardInTableSlot = tableCards.find(
+          (card) =>
+            card.position.area === "table" && card.position.tableSlot === i
+        );
+        return !cardInTableSlot;
+      });
+    return firstAvailableTableSlot;
+  }
+
+  /**
    * Returns an array of positioned cards stripped of details
    * the player matching the supplied sessionId should not know
    * @param {string} sessionId
@@ -305,13 +416,20 @@ export default class Cambio {
    */
   getMaskedCardsForClient(sessionId) {
     let stripCanBeTapped = true;
-    // If we're in snap suspension and you called it, you need to be able to tap
-    if (this.state == "snapSuspension" && this.playerWhoSnapped == sessionId) {
+    // If we're in "snapSuspension" or "awaitingSnapResolutionChoice" and you called it, you need to be able to tap
+    if (
+      (this.state == "snapSuspension" ||
+        this.state == "awaitingSnapResolutionChoice") &&
+      this.playerWhoSnapped == sessionId
+    ) {
       stripCanBeTapped = false;
     }
-    // If we're not in snap suspension, you can tap if it's your turn
+    // If we're not in "snapSuspension" or "awaitingSnapResolutionChoice", you can tap if it's your turn
     if (
-      this.state !== "snapSuspension" &&
+      !(
+        this.state == "snapSuspension" ||
+        this.state == "awaitingSnapResolutionChoice"
+      ) &&
       this.currentTurnSessionId == sessionId
     ) {
       stripCanBeTapped = false;
@@ -374,6 +492,7 @@ export default class Cambio {
     // TODO: Remove this any
     return new Promise((/** @type {any} */ resolve) => {
       if (!this.permittedUpdates[this.state].includes(update.action)) {
+        console.log(`${update.action} not permitted in ${this.state}`);
         resolve();
         return;
       }
@@ -421,7 +540,7 @@ export default class Cambio {
           break;
 
         case "snap":
-          console.log('Snap case in handleUpdate');
+          console.log("Snap case in handleUpdate");
           resolve(this.startSnapSuspension(sessionId));
           break;
 
@@ -431,6 +550,11 @@ export default class Cambio {
             sessionId === this.playerWhoSnapped
           ) {
             resolve(this.resolveSnap(sessionId, update.cardPosition));
+          } else if (
+            this.state === "awaitingSnapResolutionChoice" &&
+            sessionId === this.playerWhoSnapped
+          ) {
+            resolve(this.finishSnapResolution(update.cardPosition));
           } else if (sessionId === this.currentTurnSessionId) {
             // This is an ugly if-else mess because standalone if statements don't 100% guarantee
             // the state won't shift halfway through evalutation and switch is ever more verbose
@@ -632,6 +756,7 @@ export default class Cambio {
       });
 
       this.state = "startingTurn";
+      console.log("Turn started");
 
       resolve(this.sendStateToAll());
     });
@@ -682,24 +807,16 @@ export default class Cambio {
     );
     // If the player's slots are full, don't penalise
     if (snappingPlayersTableCards.length < TABLE_CARD_SLOTS) {
-      // TODO: Otherwise, award a penalty by putting the top-most deck card in the player's first available slot
+      // Penalise by putting the top-most deck card in the player's first available slot
       const penaltyCard = this.drawCard();
-      // With an array of length TABLE_CARD_SLOTS find the first index without a card in that table slot
-      const firstAvailableTableSlot = new Array(TABLE_CARD_SLOTS)
-        .fill(null)
-        .findIndex((_, i) => {
-          const cardInTableSlot = snappingPlayersTableCards.find(
-            (card) =>
-              card.position.area === "table" && card.position.tableSlot === i
-          );
-          return !cardInTableSlot;
-        });
       this.positionedCards.push({
         ...penaltyCard,
         position: {
           area: "table",
           player: snappingPlayerTablePosition,
-          tableSlot: firstAvailableTableSlot,
+          tableSlot: this.getFirstAvailableTableSlot(
+            snappingPlayerTablePosition
+          ),
         },
       });
     }
@@ -735,26 +852,39 @@ export default class Cambio {
     return new Promise((resolve) => {
       this.state = "resolvingSnap";
       this.snapSuspensionTimer?.remove();
-      // TODO: is there a more elegant way of comparing the objects?
       const cardAtSnapPosition = /** @type {Card} */ (
         this.positionedCards.find((card) =>
           isEqual(card.position, snappedCardPosition)
         )
       );
+
       console.log(`Snapped card:`);
       console.log(cardAtSnapPosition);
+
       const pileCard = this.positionedCards.find(
         (card) => card.position.area === "pile"
       );
+
       console.log(`Pile card:`);
       console.log(pileCard);
-      if (
-        cardAtSnapPosition &&
-        pileCard &&
-        cardAtSnapPosition.rank === pileCard.rank
-      ) {
-        // TODO: Do I need to strip the pile cards position here? Or can I rely on the position being updated
-        // corrently if/when the card is taken from the pile through the deck and back into the positioned cards
+
+      const isValidSnap = pileCard && cardAtSnapPosition.rank === pileCard.rank;
+      const snappingPlayerTablePosition = /** @type {number} */ (
+        this.players.get(sessionId)?.tablePosition
+      );
+      const isAnotherPlayerCard =
+        (snappedCardPosition.area === "viewing" ||
+          snappedCardPosition.area === "table") &&
+        snappedCardPosition.player !== snappingPlayerTablePosition;
+
+      console.log(
+        `Snapped card ${
+          isAnotherPlayerCard ? "IS" : "IS NOT"
+        } another players card`
+      );
+
+      if (isValidSnap) {
+        // If the snap is valid: Award the snap by moving the snappedCard to the pile.
         this.hiddenPile.unshift(pileCard);
         this.positionedCards = this.positionedCards.filter(
           (card) => card.position.area !== "pile"
@@ -763,36 +893,88 @@ export default class Cambio {
           area: "pile",
         };
       } else {
+        // Penalise the snapper with a card from the deck
+        this.penaliseForFailedSnap(sessionId);
         const snappingPlayerName = this.players.get(sessionId)?.name;
         const cardTitle =
           cardAtSnapPosition.rank === "joker"
             ? `joker`
             : `${cardAtSnapPosition.rank} of ${cardAtSnapPosition.suit}`;
+        const message = `${snappingPlayerName} tried to snap a ${cardTitle} lol They get ${
+          isAnotherPlayerCard ? "that card and " : ""
+        }a penalty`;
         this.events.push({
           type: "text",
-          message: `${snappingPlayerName} tried to snap a ${cardTitle} lol They get a penalty.`,
+          message,
         });
-        this.penaliseForFailedSnap(sessionId);
       }
 
-      // Restore presnapped state
-      this.state = this.stateBeforeSnapSuspension;
-      this.positionedCards.forEach((card) => {
-        const matchingCard = this.cardsTappableBeforeSnapSuspension.find(
-          (c) => {
-            return c.rank === card.rank && c.suit === card.suit;
-          }
+      if (isValidSnap && isAnotherPlayerCard) {
+        // Set state to ""awaitingSnapResolutionChoice""
+        this.state = "awaitingSnapResolutionChoice";
+        // Save the position of the snappedcard.
+        this.savedSnappedCardPosition = snappedCardPosition;
+        // add an event asking the snapping player what they want to get rid of
+        const snappedOnName = [...this.players.values()].find(
+          (p) => p.tablePosition === snappedCardPosition.player
+        )?.name;
+        this.events.push({
+          type: "text",
+          message: `Choose a card to give to ${snappedOnName}`,
+        });
+        // mark all the snapping player's cards as canBeTapped
+        this.positionedCards.forEach((card) => {
+          card.facedown =
+            card.position.area === "table" &&
+            card.position.player === snappingPlayerTablePosition;
+        });
+        // send the state
+        resolve(this.sendStateToAll());
+        return;
+      }
+
+      if (!isValidSnap && isAnotherPlayerCard) {
+        // Further penalise the snapper by moving the snappedCard to their table area if they have room.
+        console.log("Take the other player card you tried to snap!");
+
+        const snappingPlayersTableCards = this.positionedCards.filter(
+          (c) =>
+            c.position.area === "table" &&
+            c.position.player === snappingPlayerTablePosition
         );
-        if (matchingCard) {
-          card.canBeTapped = true;
-        } else {
-          card.canBeTapped = false;
+        if (snappingPlayersTableCards.length < TABLE_CARD_SLOTS) {
+          cardAtSnapPosition.position = {
+            area: "table",
+            player: snappingPlayerTablePosition,
+            tableSlot: this.getFirstAvailableTableSlot(
+              snappingPlayerTablePosition
+            ),
+          };
         }
-      });
-      if (this.viewingTimer) this.viewingTimer.start();
+      }
+
+      // You only get here if the snap was a valid one of the player's own card
+      // or the snap was invalid
+      this.restorePresnapState();
 
       resolve(this.sendStateToAll());
     });
+  }
+
+  restorePresnapState() {
+    this.state = this.stateBeforeSnapSuspension;
+    this.positionedCards.forEach((card) => {
+      const matchingCard = this.cardsTappableBeforeSnapSuspension.find((c) => {
+        return c.rank === card.rank && c.suit === card.suit;
+      });
+      if (matchingCard) {
+        card.canBeTapped = true;
+      } else {
+        card.canBeTapped = false;
+      }
+    });
+    // TODO: Am I sure all the viewing timers are cleared once they end?
+    if (this.viewingTimer) this.viewingTimer.start();
   }
 
   /**
@@ -872,7 +1054,37 @@ export default class Cambio {
   /** @param {CardPosition} cardPosition */
   startDeckSwap(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      // Set state to 'awaitingDeckSwapChoice'
+      this.state = "awaitingDeckSwapChoice";
+      // Move the deck card to the first open viewing slot of the current turn's player
+      const currentDeckCard = this.positionedCards.find(
+        (card) => card.position.area === "deck"
+      );
+      const currentPlayerInfo = this.getCurrentTurnPlayerInfo();
+      if (currentDeckCard && currentPlayerInfo) {
+        currentDeckCard.position = {
+          area: "viewing",
+          viewingSlot: 0,
+          player: currentPlayerInfo.currentTurnTablePosition,
+        };
+      }
+      // Draw a new card for the deck card
+      this.positionedCards.push({
+        ...this.drawCard(),
+        position: {
+          area: "deck",
+        },
+      });
+      // Highlight the pile and the players own cards.
+      this.positionedCards.forEach((card) => {
+        card.canBeTapped =
+          card.position.area === "pile" ||
+          (card.position.area === "table" &&
+            card.position.player ===
+              currentPlayerInfo?.currentTurnTablePosition);
+      });
+      // Send state
+      resolve(this.sendStateToAll());
     });
   }
 
@@ -901,7 +1113,9 @@ export default class Cambio {
       this.events.push({
         type: "text",
         message: `${snappingPlayerName} snapped!`,
-        recipientSessionIds: [...this.players.keys()].filter(id => id !== sessionId),
+        recipientSessionIds: [...this.players.keys()].filter(
+          (id) => id !== sessionId
+        ),
       });
 
       this.events.push({
@@ -919,22 +1133,9 @@ export default class Cambio {
           message: `${snappingPlayerName} gets a penalty for not snapping in time`,
         });
         this.penaliseForFailedSnap(sessionId);
-        // Restore state
-        this.state = this.stateBeforeSnapSuspension;
-        this.positionedCards.forEach((card) => {
-          const matchingCard = this.cardsTappableBeforeSnapSuspension.find(
-            (c) => {
-              return c.rank === card.rank && c.suit === card.suit;
-            }
-          );
-          if (matchingCard) {
-            card.canBeTapped = true;
-          } else {
-            card.canBeTapped = false;
-          }
-        });
-        // TODO: Am I sure all the viewing timers are cleared once they end?
-        if (this.viewingTimer) this.viewingTimer.start();
+
+        this.restorePresnapState();
+
         this.sendStateToAll();
       }, SNAP_SUSPENSION_TIME);
 
@@ -943,16 +1144,19 @@ export default class Cambio {
         this.players.get(sessionId)?.tablePosition
       );
       this.positionedCards.forEach((card) => {
-        if (
+        card.canBeTapped =
           (card.position.area === "table" ||
             card.position.area === "viewing") &&
           (this.options.canSnapOtherPlayers ||
-            card.position.player === snappingPlayerTablePosition)
-        ) {
-          card.canBeTapped = true;
-        }
+            card.position.player === snappingPlayerTablePosition);
       });
       resolve(this.sendStateToAll());
+    });
+  }
+
+  startSpecialPower() {
+    return new Promise((resolve) => {
+      resolve(this.nextTurn());
     });
   }
 

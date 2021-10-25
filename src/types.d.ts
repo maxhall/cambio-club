@@ -58,6 +58,7 @@ export type State = "settingUp" |
     "initialViewing" |
     "snapSuspension" |
     "resolvingSnap" |
+    "awaitingSnapResolutionChoice" |
     "startingTurn" |
     "awaitingDeckSwapChoice" |
     "finishingDeckSwap" |
