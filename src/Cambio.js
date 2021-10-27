@@ -30,6 +30,8 @@ export default class Cambio {
     this.clientStateId = 0;
     /** @type {string} */
     this.currentTurnSessionId;
+    /** @type {number} */
+    this.currentTurnTablePosition = 0;
     /** @type {import('./types').Events} */
     this.events = [];
     /** @type {boolean} */
@@ -707,29 +709,27 @@ export default class Cambio {
         return;
       }
 
-      // Handle the first turn where currentTurnSessionId hasn't yet been defined
-      const currentTurnTablePosition = /** @type {number} */ (
-        this.currentTurnSessionId
-          ? this.players.get(this.currentTurnSessionId)?.tablePosition
-          : 0
+      console.log(
+        `Current turn table position: ${this.currentTurnTablePosition}`
       );
-      console.log(`Current turn table position: ${currentTurnTablePosition}`);
-      const nextTurnTablePosition =
-        (currentTurnTablePosition + 1) % this.players.size;
-      console.log(`Next turn table position: ${nextTurnTablePosition}`);
-      const nextTurnSessionId = /** @type {string} */ (
+      this.currentTurnTablePosition =
+        (this.currentTurnTablePosition + 1) % this.players.size;
+      console.log(`Next turn table position: ${this.currentTurnTablePosition}`);
+
+      this.currentTurnSessionId = /** @type {string} */ (
         [...this.players.keys()].find((sessionId) => {
           const tablePositionMatchingSessionId =
             this.players.get(sessionId)?.tablePosition;
-          if (tablePositionMatchingSessionId === nextTurnTablePosition) {
+          if (
+            tablePositionMatchingSessionId === this.currentTurnTablePosition
+          ) {
             return true;
           } else {
             return false;
           }
         })
       );
-      console.log(`Next turn session id: ${nextTurnSessionId}`);
-      this.currentTurnSessionId = nextTurnSessionId;
+      console.log(`Next turn session id: ${this.currentTurnSessionId}`);
 
       if (this.isCambioRound) {
         const currentPlayerData = this.players.get(this.currentTurnSessionId);
@@ -744,7 +744,7 @@ export default class Cambio {
       this.events.push({
         type: "text",
         message: "Your turn!",
-        recipientSessionIds: [nextTurnSessionId],
+        recipientSessionIds: [this.currentTurnSessionId],
       });
 
       this.positionedCards.forEach((card) => {
