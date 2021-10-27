@@ -184,9 +184,7 @@ export default class Cambio {
           }
         });
       }
-      // Face down card for the deck
-      // const drawnCardForDeck = ;
-      // if (drawnCardForDeck) {
+
       this.positionedCards.push({
         ...this.drawCard(),
         position: {
@@ -196,11 +194,7 @@ export default class Cambio {
         canBeTapped: false,
         selected: false,
       });
-      // }
 
-      // Face up card on the pile
-      // const drawnCardForPile = this.drawCard();
-      // if (drawnCardForPile) {
       this.positionedCards.push({
         ...this.drawCard(),
         position: {
@@ -210,7 +204,6 @@ export default class Cambio {
         canBeTapped: false,
         selected: false,
       });
-      // }
 
       this.sendStateToAll().then((_) => {
         resolve(this.initialViewing());
@@ -480,6 +473,9 @@ export default class Cambio {
         }
       }
 
+      // TODO: REMOVE just putting everything face up to test
+      updatedCard.facedown = false;
+
       // Prevent tapping if it's not your turn
       if (stripCanBeTapped) updatedCard.canBeTapped = false;
 
@@ -567,6 +563,8 @@ export default class Cambio {
           break;
 
         case "tapCard":
+          console.log(`Tapped card:`);
+          console.log(update);
           if (
             this.state === "snapSuspension" &&
             sessionId === this.playerWhoSnapped
@@ -993,7 +991,7 @@ export default class Cambio {
         card.canBeTapped = false;
       }
     });
-    // TODO: Am I sure all the viewing timers are cleared once they end?
+    // TODO: Am I sure all the viewing timers are cleared once they end such that this if check is always?
     if (this.viewingTimer) this.viewingTimer.start();
   }
 

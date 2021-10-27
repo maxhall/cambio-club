@@ -28,7 +28,7 @@
   export let gameId;
 
   const tweenedTransforms = tweened(transforms, {
-    duration: 650,
+    duration: 3000,
     easing: cubicOut,
   });
   $: $tweenedTransforms = transforms;
@@ -51,6 +51,7 @@
   $: rankCharacter = (rank && typeof rank == 'string') ? rankCharacters[rank] : rank;
 
   function handleClick() {
+    console.log('Click before canBeTapped check...');
     if (canBeTapped) {
       /** @type {import('../types').Update} */
       const update = {
@@ -88,6 +89,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    z-index: 1000;
   }
 
   p {

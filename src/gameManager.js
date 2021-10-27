@@ -24,7 +24,7 @@ class GameManager {
       const session = this.sessions.get(sessionId);
       if (session) {
         session.sockets.forEach((socketId) => {
-          console.log(`Session ${sessionId} update going to ${socketId}`);
+          // console.log(`Session ${sessionId} update going to ${socketId}`);
           ioServer.to(socketId).emit("update", clientState);
         });
       }

@@ -31,13 +31,12 @@
   const currentTurnPosition = currentTurnPlayer
     ? currentTurnPlayer.tablePosition
     : 0;
-  const thisPlayer = players.find(p => {
+  const thisPlayer = players.find((p) => {
     return thisClientSessionId === p.sessionId;
   });
   // This is subtracted from each rotation calculation so the player's browser always
   // shows their cards and info at the bottom
-  const localTablePositionOffset = (thisPlayer) ? thisPlayer.tablePosition : 0;
-
+  const localTablePositionOffset = thisPlayer ? thisPlayer.tablePosition : 0;
 
   /** @type {number | undefined} */
   let clientHeight;
