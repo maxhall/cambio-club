@@ -188,7 +188,7 @@
 <div class="wrapper" bind:clientHeight bind:clientWidth>
   {#if clientHeight && clientWidth}
     <div class="card-area" transition:fade>
-      {#each cardsWithTransforms as card}
+      {#each cardsWithTransforms as card (card.id)}
         <Card
           height={cardHeight}
           width={cardWidth}

@@ -39,6 +39,7 @@ type OrdinaryCardDetails = {
 };
 
 export type Card = (OrdinaryCardDetails | JokerCardDetails) & {
+    id: number,
     value: number,
     position: CardPosition,
     facedown: boolean,

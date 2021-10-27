@@ -25,6 +25,7 @@ function shuffledDeck() {
   /** @type  {Rank[]} */
   const ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"];
   const deck = [];
+  let id = 0;
 
   suits.forEach((suit) => {
     ranks.forEach((rank) => {
@@ -50,18 +51,24 @@ function shuffledDeck() {
         rank,
         suit,
         value,
+        id: id++,
       });
     });
   });
 
-  const joker = {
+  deck.push({
     rank: "joker",
     suit: null,
     value: 0,
-  };
+    id: id++,
+  });
 
-  deck.push(joker);
-  deck.push(joker);
+  deck.push({
+    rank: "joker",
+    suit: null,
+    value: 0,
+    id: id++,
+  });
 
   return shuffle(deck);
 }
