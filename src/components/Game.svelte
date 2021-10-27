@@ -14,8 +14,8 @@
   let eventTextQueueTimer;
 
   const eventTextTimeout = 3000;
-  const isMyTurn = state.sessionId === state.currentTurnSessionId;
-
+  
+  $: isMyTurn = state.sessionId === state.currentTurnSessionId;
   $: console.log(state);
   // If events get funky, find a non-reactive approach to this
   $: if (state.events.length > 0) processEvents(state.events);
