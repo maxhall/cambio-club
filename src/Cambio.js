@@ -238,9 +238,6 @@ export default class Cambio {
   finishDeckSwap(cardPosition) {
     return new Promise((resolve) => {
       this.state = "finishingDeckSwap";
-      const currentPlayerTablePosition = this.players.get(
-        this.currentTurnSessionId
-      )?.tablePosition;
       const tappedCard = /** @type {Card} */ (
         this.positionedCards.find((card) =>
           isEqual(card.position, cardPosition)
@@ -250,12 +247,12 @@ export default class Cambio {
         this.positionedCards.find(
           (c) =>
             c.position.area === "viewing" &&
-            c.position.player === currentPlayerTablePosition
+            c.position.player === this.currentTurnTablePosition
         )
       );
       const pileCard = /** @type {Card} */ (
         this.positionedCards.find((c) => c.position.area === "pile")
-        );
+      );
 
       // Push the pile card on to the hidden pile
       this.hiddenPile.unshift(pileCard);
@@ -271,7 +268,7 @@ export default class Cambio {
         };
       } else if (
         cardPosition.area === "table" &&
-        cardPosition.player === currentPlayerTablePosition
+        cardPosition.player === this.currentTurnTablePosition
       ) {
         // Move the deck card in the first viewing slot to the spot that was tapped
         viewingSlotCard.position = cardPosition;
@@ -285,7 +282,6 @@ export default class Cambio {
         return;
       }
 
-      // Set 'canBeSnapped' to true and make the snap button active. Send the state.
       this.canBeSnapped = true;
       this.sendStateToAll();
 
@@ -296,7 +292,31 @@ export default class Cambio {
   /** @param {CardPosition} cardPosition */
   finishPileSwap(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      this.state = "finishingPileSwap";
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+      const pileCard = /** @type {Card} */ (
+        this.positionedCards.find((c) => c.position.area === "pile")
+      );
+
+      // If the chosen card is valid (i.e. one of theirs) swap it with the pile card
+      if (
+        cardPosition.area === "table" &&
+        cardPosition.player === this.currentTurnTablePosition
+      ) {
+        pileCard.position = cardPosition;
+        tappedCard.position = {
+          area: "pile",
+        };
+      }
+
+      this.canBeSnapped = true;
+      this.sendStateToAll();
+
+      resolve(this.startSpecialPower());
     });
   }
 
@@ -1091,7 +1111,16 @@ export default class Cambio {
   /** @param {CardPosition} cardPosition */
   startPileSwap(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      this.state = "awaitingPileSwapChoice";
+      const currentPlayerTablePosition = this.players.get(
+        this.currentTurnSessionId
+      )?.tablePosition;
+      this.positionedCards.forEach((card) => {
+        card.canBeTapped =
+          card.position.area === "table" &&
+          card.position.player === currentPlayerTablePosition;
+      });
+      resolve(this.sendStateToAll());
     });
   }
 
