@@ -13,6 +13,7 @@ import { Timer, shuffledDeck, shuffle } from "./utils";
 const INITIAL_VIEWING_INTRO_PAUSE = 1.5 * 1000;
 const INITIAL_VIEWING_TIME = 10 * 1000;
 const SNAP_SUSPENSION_TIME = 10 * 1000;
+const LOOK_TIME = 10 * 1000;
 const TABLE_CARD_SLOTS = 8;
 
 export default class Cambio {
@@ -314,14 +315,70 @@ export default class Cambio {
   /** @param {CardPosition} cardPosition */
   finishMateLook(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+
+      if (
+        tappedCard.position.area === "table" &&
+        tappedCard.position.player === this.currentTurnTablePosition
+      ) {
+        resolve(null);
+        return;
+      }
+
+      this.state = "previewingCard";
+
+      tappedCard.position = {
+        area: "viewing",
+        viewingSlot: 0,
+        player: this.currentTurnTablePosition,
+      };
+
+      this.viewingTimer = new Timer(() => {
+        tappedCard.position = cardPosition;
+        this.viewingTimer = null;
+        this.nextTurn();
+      }, LOOK_TIME);
+
+      resolve(this.sendStateToAll());
     });
   }
 
   /** @param {CardPosition} cardPosition */
   finishMineLook(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+
+      if (
+        tappedCard.position.area === "table" &&
+        tappedCard.position.player !== this.currentTurnTablePosition
+      ) {
+        resolve(null);
+        return;
+      }
+
+      this.state = "previewingCard";
+
+      tappedCard.position = {
+        area: "viewing",
+        viewingSlot: 0,
+        player: this.currentTurnTablePosition,
+      };
+
+      this.viewingTimer = new Timer(() => {
+        tappedCard.position = cardPosition;
+        this.viewingTimer = null;
+        this.nextTurn();
+      }, LOOK_TIME);
+
+      resolve(this.sendStateToAll());
     });
   }
 
@@ -1014,7 +1071,7 @@ export default class Cambio {
       this.positionedCards.forEach((card) => {
         card.canBeTapped =
           card.position.area === "table" &&
-          card.position.player === this.currentTurnTablePosition;
+          card.position.player !== this.currentTurnTablePosition;
       });
     } else {
       // All can't be tapped
@@ -1099,7 +1156,7 @@ export default class Cambio {
   startBlindSwap() {
     return new Promise((resolve) => {
       resolve(this.nextTurn());
-    })
+    });
   }
 
   /** @param {CardPosition} cardPosition */
@@ -1135,14 +1192,28 @@ export default class Cambio {
 
   startMateLook() {
     return new Promise((resolve) => {
-      resolve(this.nextTurn());
-    })
+      this.state = "awaitingMateLookChoice";
+      this.events.push({
+        type: "text",
+        message: "Choose a mate's card to look at",
+        recipientSessionIds: [this.currentTurnSessionId],
+      });
+      this.setCanBeTapped(this.state);
+      resolve(this.sendStateToAll());
+    });
   }
 
   startMineLook() {
     return new Promise((resolve) => {
-      resolve(this.nextTurn());
-    })
+      this.state = "awaitingMineLookChoice";
+      this.events.push({
+        type: "text",
+        message: "Choose one of your cards to look at",
+        recipientSessionIds: [this.currentTurnSessionId],
+      });
+      this.setCanBeTapped(this.state);
+      resolve(this.sendStateToAll());
+    });
   }
 
   /** @param {CardPosition} cardPosition */
@@ -1234,7 +1305,7 @@ export default class Cambio {
   startQueenPower() {
     return new Promise((resolve) => {
       resolve(this.nextTurn());
-    })
+    });
   }
 
   /**
