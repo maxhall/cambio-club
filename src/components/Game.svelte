@@ -14,7 +14,13 @@
   let eventTextQueueTimer;
 
   const eventTextTimeout = 3000;
-  
+  const statesAllowingEndTurn = [
+    "awaitingMateLookChoice",
+    "awaitingMineLookChoice",
+    "awaitingQueenLookChoice",
+    "awaitingQueenSwapOwnChoice",
+  ];
+
   $: isMyTurn = state.sessionId === state.currentTurnSessionId;
   $: console.log(state);
   // If events get funky, find a non-reactive approach to this
@@ -124,6 +130,9 @@
       {/if}
       {#if isMyTurn && state.state === "startingTurn"}
         <button on:click={handlePass}>Pass</button>
+      {/if}
+      {#if isMyTurn && statesAllowingEndTurn.includes(state.state)}
+        <button on:click={handlePass}>End turn</button>
       {/if}
     </section>
   </footer>

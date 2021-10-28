@@ -52,11 +52,11 @@ export default class Cambio {
       startingTurn: ["tapCard", "snap", "cambio", "pass", "leave"],
       awaitingDeckSwapChoice: ["tapCard", "snap", "leave"],
       awaitingPileSwapChoice: ["tapCard", "snap", "leave"],
-      awaitingMateLookChoice: ["tapCard", "snap", "leave"],
+      awaitingMateLookChoice: ["tapCard", "snap", "leave", "pass"],
       previewingCard: ["snap", "leave"],
-      awaitingMineLookChoice: ["tapCard", "snap", "leave"],
-      awaitingQueenLookChoice: ["tapCard", "snap", "leave"],
-      awaitingQueenSwapOwnChoice: ["tapCard", "snap", "leave"],
+      awaitingMineLookChoice: ["tapCard", "snap", "leave", "pass"],
+      awaitingQueenLookChoice: ["tapCard", "snap", "leave", "pass"],
+      awaitingQueenSwapOwnChoice: ["tapCard", "snap", "leave", "pass"],
       awaitingQueenSwapOtherChoice: ["tapCard", "snap", "leave"],
       awaitingBlindSwapOwnChoice: ["tapCard", "snap", "leave"],
       awaitingBlindSwapOtherChoice: ["tapCard", "snap", "leave"],
@@ -766,11 +766,7 @@ export default class Cambio {
       });
 
       this.positionedCards.forEach((card) => {
-        if (card.position.area === "deck" || card.position.area === "pile") {
-          card.canBeTapped = true;
-        } else {
-          card.canBeTapped = false;
-        }
+        card.canBeTapped = card.position.area === "deck" || card.position.area === "pile";
       });
 
       this.state = "startingTurn";
