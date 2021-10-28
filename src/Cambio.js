@@ -763,14 +763,9 @@ export default class Cambio {
         recipientSessionIds: [this.currentTurnSessionId],
       });
 
-      this.positionedCards.forEach((card) => {
-        card.canBeTapped =
-          card.position.area === "deck" || card.position.area === "pile";
-      });
-
       this.state = "startingTurn";
       console.log("Turn started");
-
+      this.setCanBeTapped(this.state);
       resolve(this.sendStateToAll());
     });
   }
@@ -1125,15 +1120,9 @@ export default class Cambio {
           area: "deck",
         },
       });
-      // Highlight the pile and the players own cards.
-      this.positionedCards.forEach((card) => {
-        card.canBeTapped =
-          card.position.area === "pile" ||
-          (card.position.area === "table" &&
-            card.position.player ===
-              currentPlayerInfo?.currentTurnTablePosition);
-      });
-      // Send state
+
+      this.setCanBeTapped(this.state);
+
       resolve(this.sendStateToAll());
     });
   }
@@ -1142,14 +1131,7 @@ export default class Cambio {
   startPileSwap(cardPosition) {
     return new Promise((resolve) => {
       this.state = "awaitingPileSwapChoice";
-      const currentPlayerTablePosition = this.players.get(
-        this.currentTurnSessionId
-      )?.tablePosition;
-      this.positionedCards.forEach((card) => {
-        card.canBeTapped =
-          card.position.area === "table" &&
-          card.position.player === currentPlayerTablePosition;
-      });
+      this.setCanBeTapped(this.state);
       resolve(this.sendStateToAll());
     });
   }
