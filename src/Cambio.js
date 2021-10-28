@@ -57,9 +57,9 @@ export default class Cambio {
       awaitingMineLookChoice: ["tapCard", "snap", "leave", "pass"],
       awaitingQueenLookChoice: ["tapCard", "snap", "leave", "pass"],
       awaitingQueenSwapOwnChoice: ["tapCard", "snap", "leave", "pass"],
-      awaitingQueenSwapOtherChoice: ["tapCard", "snap", "leave"],
+      awaitingQueenSwapOtherChoice: ["tapCard", "leave"],
       awaitingBlindSwapOwnChoice: ["tapCard", "snap", "leave"],
-      awaitingBlindSwapOtherChoice: ["tapCard", "snap", "leave"],
+      awaitingBlindSwapOtherChoice: ["tapCard", "leave"],
       gameOver: ["requestRematch", "leave"],
       exit: [],
       // TODO: Including "leave" in these is probably meaningless because the updates are gated when
@@ -84,8 +84,6 @@ export default class Cambio {
     this.state = "settingUp";
     /** @type {State} */
     this.stateBeforeSnapSuspension;
-    /** @type {Card[]} */
-    this.cardsTappableBeforeSnapSuspension;
     /** @type {Array<{sessionId: string, data: Update}>} */
     this.updateQueue = [];
     /** @type {null | Timer} */
@@ -766,7 +764,8 @@ export default class Cambio {
       });
 
       this.positionedCards.forEach((card) => {
-        card.canBeTapped = card.position.area === "deck" || card.position.area === "pile";
+        card.canBeTapped =
+          card.position.area === "deck" || card.position.area === "pile";
       });
 
       this.state = "startingTurn";
@@ -975,18 +974,55 @@ export default class Cambio {
     });
   }
 
+  /** @param {State} state */
+  setCanBeTapped(state) {
+    if (state === "startingTurn") {
+      // Deck and pile canBeTapped
+      this.positionedCards.forEach((card) => {
+        card.canBeTapped =
+          card.position.area === "deck" || card.position.area === "pile";
+      });
+    } else if (state === "awaitingDeckSwapChoice") {
+      //	Pile or any table cards of the current player
+      this.positionedCards.forEach((card) => {
+        card.canBeTapped =
+          card.position.area === "pile" ||
+          (card.position.area === "table" &&
+            card.position.player === this.currentTurnTablePosition);
+      });
+    } else if (
+      state === "awaitingPileSwapChoice" ||
+      state === "awaitingMineLookChoice" ||
+      state === "awaitingQueenSwapOwnChoice"
+    ) {
+      // Any table cards of the current player
+      this.positionedCards.forEach((card) => {
+        card.canBeTapped =
+          card.position.area === "table" &&
+          card.position.player === this.currentTurnTablePosition;
+      });
+    } else if (
+      state === "awaitingMateLookChoice" ||
+      state === "awaitingQueenLookChoice" ||
+      state === "awaitingBlindSwapOwnChoice"
+    ) {
+      // Any table cards that aren't the current player
+      this.positionedCards.forEach((card) => {
+        card.canBeTapped =
+          card.position.area === "table" &&
+          card.position.player === this.currentTurnTablePosition;
+      });
+    } else {
+      // All can't be tapped
+      this.positionedCards.forEach((card) => (card.canBeTapped = false));
+    }
+  }
+
   restorePresnapState() {
     this.state = this.stateBeforeSnapSuspension;
-    this.positionedCards.forEach((card) => {
-      const matchingCard = this.cardsTappableBeforeSnapSuspension.find((c) => {
-        return c.rank === card.rank && c.suit === card.suit;
-      });
-      if (matchingCard) {
-        card.canBeTapped = true;
-      } else {
-        card.canBeTapped = false;
-      }
-    });
+
+    this.setCanBeTapped(this.stateBeforeSnapSuspension);
+
     // TODO: Am I sure all the viewing timers are cleared once they end such that this if check is always?
     if (this.viewingTimer) this.viewingTimer.start();
   }
@@ -1123,10 +1159,6 @@ export default class Cambio {
     return new Promise((resolve) => {
       console.log("Starting snap suspension!");
       this.stateBeforeSnapSuspension = this.state;
-      // Saves a reference to each card that was previously tappable
-      this.cardsTappableBeforeSnapSuspension = this.positionedCards.filter(
-        (card) => card.canBeTapped
-      );
       if (this.viewingTimer) this.viewingTimer.pause();
       this.state = "snapSuspension";
       this.canBeSnapped = false;
