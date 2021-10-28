@@ -969,6 +969,15 @@ export default class Cambio {
     });
   }
 
+  restorePresnapState() {
+    this.state = this.stateBeforeSnapSuspension;
+
+    this.setCanBeTapped(this.stateBeforeSnapSuspension);
+
+    // TODO: Am I sure all the viewing timers are cleared once they end such that this if check is always?
+    if (this.viewingTimer) this.viewingTimer.start();
+  }
+
   /** @param {State} state */
   setCanBeTapped(state) {
     if (state === "startingTurn") {
@@ -1011,15 +1020,6 @@ export default class Cambio {
       // All can't be tapped
       this.positionedCards.forEach((card) => (card.canBeTapped = false));
     }
-  }
-
-  restorePresnapState() {
-    this.state = this.stateBeforeSnapSuspension;
-
-    this.setCanBeTapped(this.stateBeforeSnapSuspension);
-
-    // TODO: Am I sure all the viewing timers are cleared once they end such that this if check is always?
-    if (this.viewingTimer) this.viewingTimer.start();
   }
 
   /**
@@ -1096,6 +1096,12 @@ export default class Cambio {
     });
   }
 
+  startBlindSwap() {
+    return new Promise((resolve) => {
+      resolve(this.nextTurn());
+    })
+  }
+
   /** @param {CardPosition} cardPosition */
   startDeckSwap(cardPosition) {
     return new Promise((resolve) => {
@@ -1125,6 +1131,18 @@ export default class Cambio {
 
       resolve(this.sendStateToAll());
     });
+  }
+
+  startMateLook() {
+    return new Promise((resolve) => {
+      resolve(this.nextTurn());
+    })
+  }
+
+  startMineLook() {
+    return new Promise((resolve) => {
+      resolve(this.nextTurn());
+    })
   }
 
   /** @param {CardPosition} cardPosition */
@@ -1193,8 +1211,30 @@ export default class Cambio {
 
   startSpecialPower() {
     return new Promise((resolve) => {
-      resolve(this.nextTurn());
+      this.state = "startingSpecialPower";
+
+      const pileCard = /** @type {Card} */ (
+        this.positionedCards.find((c) => c.position.area === "pile")
+      );
+
+      if (pileCard.rank === "queen") {
+        resolve(this.startQueenPower());
+      } else if (pileCard.rank === "jack") {
+        resolve(this.startBlindSwap());
+      } else if (pileCard.rank === 7 || pileCard.rank === 8) {
+        resolve(this.startMateLook());
+      } else if (pileCard.rank === 9 || pileCard.rank === 10) {
+        resolve(this.startMineLook());
+      } else {
+        resolve(this.nextTurn());
+      }
     });
+  }
+
+  startQueenPower() {
+    return new Promise((resolve) => {
+      resolve(this.nextTurn());
+    })
   }
 
   /**
