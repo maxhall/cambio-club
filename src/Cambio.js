@@ -12,8 +12,8 @@ import { Timer, shuffledDeck, shuffle } from "./utils";
 
 const INITIAL_VIEWING_INTRO_PAUSE = 1.5 * 1000;
 const INITIAL_VIEWING_TIME = 10 * 1000;
-const SNAP_SUSPENSION_TIME = 10 * 1000;
-const LOOK_TIME = 10 * 1000;
+const SNAP_SUSPENSION_TIME = 5 * 1000;
+const LOOK_TIME = 5 * 1000;
 const TABLE_CARD_SLOTS = 8;
 
 export default class Cambio {
@@ -27,6 +27,8 @@ export default class Cambio {
     this.sendStateToSession = sendStateToSession;
     this.options = options;
 
+    /** @type {Card} */
+    this.blindSwapOwnChoiceCard;
     this.canBeSnapped = false;
     this.clientStateId = 0;
     /** @type {string} */
@@ -77,6 +79,8 @@ export default class Cambio {
     this.playerWhoSnapped;
     /** @type {Card[]} */
     this.positionedCards = [];
+    /** @type {Card} */
+    this.queenOwnChoiceCard;
     /** @type {CardPosition} */
     this.savedSnappedCardPosition;
     /** @type {null | Timer} */
@@ -126,20 +130,74 @@ export default class Cambio {
   /** @param {CardPosition} cardPosition */
   blindSwapOwnChoice(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+
+      if (
+        tappedCard.position.area === "table" &&
+        tappedCard.position.player !== this.currentTurnTablePosition
+      ) {
+        resolve(null);
+        return;
+      }
+
+      this.blindSwapOwnChoiceCard = tappedCard;
+      this.state = "awaitingBlindSwapOtherChoice";
+      this.setCanBeTapped(this.state);
+      tappedCard.selected = true;
+      this.events.push({
+        type: "text",
+        message: "Choose the card to swap with",
+        recipientSessionIds: [this.currentTurnSessionId],
+      });
+      resolve(this.sendStateToAll());
     });
   }
 
   /** @param {CardPosition} cardPosition */
   blindSwapOtherChoice(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+
+      if (
+        tappedCard.position.area === "table" &&
+        tappedCard.position.player === this.currentTurnTablePosition
+      ) {
+        resolve(null);
+        return;
+      }
+
+      console.log("Reached here");
+
+      tappedCard.position = this.blindSwapOwnChoiceCard.position;
+      this.blindSwapOwnChoiceCard.position = cardPosition;
+      this.blindSwapOwnChoiceCard.selected = false;
+      resolve(this.nextTurn());
     });
   }
 
   cambio() {
     return new Promise((resolve) => {
-      // resolve();
+      this.isCambioRound = true;
+      const currentPlayerData = this.players.get(this.currentTurnSessionId);
+      if (currentPlayerData) {
+        this.players.set(this.currentTurnSessionId, {
+          ...currentPlayerData,
+          hasTakenFinalTurn: true,
+        });
+        this.events.push({
+          type: "text",
+          message: `${currentPlayerData.name} called Cambio!`,
+        });
+      }
+      resolve(this.nextTurn());
     });
   }
 
@@ -223,6 +281,45 @@ export default class Cambio {
   endGame() {
     return new Promise((resolve) => {
       console.log("Ending game!");
+      this.state = "gameOver";
+      this.setCanBeTapped(this.state);
+      this.canBeSnapped = false;
+
+      /** @typedef {{tablePosition: number, name: string | null, sessionId: string, score: number}} ScoreData */
+      /** @type {ScoreData[]} */
+      const scores = [];
+      for (const player of this.players.entries()) {
+        const [sessionId, data] = player;
+        scores.push({
+          tablePosition: data.tablePosition,
+          name: data.name,
+          sessionId,
+          score: 0,
+        });
+      }
+
+      this.positionedCards.forEach((card) => {
+        if (card.position.area !== "table") return;
+        const player = scores.find(
+          (s) =>
+            card.position.area === "table" &&
+            s.tablePosition === card.position.player
+        );
+        if (player) {
+          player.score = player.score + card.value;
+        }
+      });
+
+      const winner = scores.sort((a, b) => {
+        return a.score - b.score;
+      })[0];
+
+      this.events.push({
+        type: "text",
+        message: `${winner.name} wins!`,
+      });
+
+      resolve(this.sendStateToAll());
     });
   }
 
@@ -419,7 +516,42 @@ export default class Cambio {
   /** @param {CardPosition} cardPosition */
   finishQueenLook(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+
+      if (
+        tappedCard.position.area === "table" &&
+        tappedCard.position.player === this.currentTurnTablePosition
+      ) {
+        resolve(null);
+        return;
+      }
+
+      this.state = "previewingCard";
+
+      tappedCard.position = {
+        area: "viewing",
+        viewingSlot: 0,
+        player: this.currentTurnTablePosition,
+      };
+
+      this.viewingTimer = new Timer(() => {
+        tappedCard.position = cardPosition;
+        this.viewingTimer = null;
+        this.state = "awaitingQueenSwapOwnChoice";
+        this.setCanBeTapped(this.state);
+        this.events.push({
+          type: "text",
+          message: "Choose one of your cards to swap",
+          recipientSessionIds: [this.currentTurnSessionId],
+        });
+        this.sendStateToAll();
+      }, LOOK_TIME);
+
+      resolve(this.sendStateToAll());
     });
   }
 
@@ -529,7 +661,7 @@ export default class Cambio {
       }
 
       // TODO: REMOVE just putting everything face up to test
-      updatedCard.facedown = false;
+      // updatedCard.facedown = false;
 
       // Prevent tapping if it's not your turn
       if (stripCanBeTapped) updatedCard.canBeTapped = false;
@@ -892,20 +1024,76 @@ export default class Cambio {
   /** @param {CardPosition} cardPosition */
   queenOwnChoice(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+
+      if (
+        tappedCard.position.area === "table" &&
+        tappedCard.position.player !== this.currentTurnTablePosition
+      ) {
+        resolve(null);
+        return;
+      }
+
+      this.queenOwnChoiceCard = tappedCard;
+      this.state = "awaitingQueenSwapOtherChoice";
+      this.setCanBeTapped(this.state);
+      tappedCard.selected = true;
+      this.events.push({
+        type: "text",
+        message: "Choose the card to swap with",
+        recipientSessionIds: [this.currentTurnSessionId],
+      });
+      resolve(this.sendStateToAll());
     });
   }
 
   /** @param {CardPosition} cardPosition */
   queenOtherChoice(cardPosition) {
     return new Promise((resolve) => {
-      // resolve();
+      const tappedCard = /** @type {Card} */ (
+        this.positionedCards.find((card) =>
+          isEqual(card.position, cardPosition)
+        )
+      );
+
+      if (
+        tappedCard.position.area === "table" &&
+        tappedCard.position.player === this.currentTurnTablePosition
+      ) {
+        resolve(null);
+        return;
+      }
+
+      tappedCard.position = this.queenOwnChoiceCard.position;
+      this.queenOwnChoiceCard.position = cardPosition;
+      this.queenOwnChoiceCard.selected = false;
+      resolve(this.nextTurn());
     });
   }
 
   rematch() {
     return new Promise((resolve) => {
-      // resolve();
+      this.currentTurnTablePosition = 0;
+      this.isCambioRound = false;
+      this.hiddenDeck = [];
+      this.hiddenPile = [];
+      this.positionedCards = [];
+
+      for (const [sessionId, data] of this.players.entries()) {
+        this.players.set(sessionId, {
+          ...data,
+          ready: false,
+          hasRequestedRematch: false,
+          hasTakenFinalTurn: false,
+        })
+      };
+
+      this.state = "settingUp";
+      resolve(this.sendStateToAll());
     });
   }
 
@@ -1054,7 +1242,8 @@ export default class Cambio {
     } else if (
       state === "awaitingPileSwapChoice" ||
       state === "awaitingMineLookChoice" ||
-      state === "awaitingQueenSwapOwnChoice"
+      state === "awaitingQueenSwapOwnChoice" ||
+      state === "awaitingBlindSwapOwnChoice"
     ) {
       // Any table cards of the current player
       this.positionedCards.forEach((card) => {
@@ -1065,7 +1254,8 @@ export default class Cambio {
     } else if (
       state === "awaitingMateLookChoice" ||
       state === "awaitingQueenLookChoice" ||
-      state === "awaitingBlindSwapOwnChoice"
+      state === "awaitingQueenSwapOtherChoice" ||
+      state === "awaitingBlindSwapOtherChoice"
     ) {
       // Any table cards that aren't the current player
       this.positionedCards.forEach((card) => {
@@ -1155,7 +1345,14 @@ export default class Cambio {
 
   startBlindSwap() {
     return new Promise((resolve) => {
-      resolve(this.nextTurn());
+      this.state = "awaitingBlindSwapOwnChoice";
+      this.setCanBeTapped(this.state);
+      this.events.push({
+        type: "text",
+        message: "Choose a card to swap",
+        recipientSessionIds: [this.currentTurnSessionId],
+      });
+      resolve(this.sendStateToAll());
     });
   }
 
@@ -1304,7 +1501,14 @@ export default class Cambio {
 
   startQueenPower() {
     return new Promise((resolve) => {
-      resolve(this.nextTurn());
+      this.state = "awaitingQueenLookChoice";
+      this.setCanBeTapped(this.state);
+      this.events.push({
+        type: "text",
+        message: "Choose a card to look at",
+        recipientSessionIds: [this.currentTurnSessionId],
+      });
+      resolve(this.sendStateToAll());
     });
   }
 

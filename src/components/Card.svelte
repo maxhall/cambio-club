@@ -28,7 +28,7 @@
   export let gameId;
 
   const tweenedTransforms = tweened(transforms, {
-    duration: 3000,
+    duration: 850,
     easing: cubicOut,
   });
   $: $tweenedTransforms = transforms;

@@ -12,6 +12,7 @@
   let eventText = "";
   /** @type {NodeJS.Timeout | undefined} */
   let eventTextQueueTimer;
+  let hasRequestedRematch = false;
 
   const eventTextTimeout = 3000;
   const statesAllowingEndTurn = [
@@ -25,6 +26,7 @@
   $: console.log(state);
   // If events get funky, find a non-reactive approach to this
   $: if (state.events.length > 0) processEvents(state.events);
+  $: if (state.state === "settingUp") hasRequestedRematch = false;
 
   async function handleLeave() {
     console.log("Leaving");
@@ -54,6 +56,14 @@
     sendUpdate({
       gameId: state.gameId,
       action: "snap",
+    });
+  }
+
+  function handleRematch() {
+    hasRequestedRematch = true;
+    sendUpdate({
+      gameId: state.gameId,
+      action: "requestRematch",
     });
   }
 
@@ -133,6 +143,9 @@
       {/if}
       {#if isMyTurn && statesAllowingEndTurn.includes(state.state)}
         <button on:click={handlePass}>End turn</button>
+      {/if}
+      {#if state.state === "gameOver" && !hasRequestedRematch}
+        <button on:click={handleRematch}>Play again</button>
       {/if}
     </section>
   </footer>

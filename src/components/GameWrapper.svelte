@@ -27,6 +27,8 @@
     socket.connect();
   }
 
+  $: if (state && state.state === "settingUp") hasIndicatedReady = false;
+
   onMount(() => {
     socket.on(
       "update",
