@@ -660,8 +660,9 @@ export default class Cambio {
         }
       }
 
-      // TODO: REMOVE just putting everything face up to test
-      // updatedCard.facedown = false;
+      if (this.options.openHands) {
+        updatedCard.facedown = false;
+      }
 
       // Prevent tapping if it's not your turn
       if (stripCanBeTapped) updatedCard.canBeTapped = false;

@@ -2,12 +2,17 @@
   // @ts-check
   import { goto } from "@sapper/app";
   let selectedOptions = ["Allow snapping others' cards"];
-  const options = ["Allow snapping others' cards", "Show Cambio points on picture cards"];
+  const options = [
+    "Allow snapping others' cards",
+    "Show points on picture cards",
+    "Play with open hands"
+  ];
   
   /** @type {import('../types').GameOptions} */
   $: optionsObject = {
-    showValuesOnPictureCards: selectedOptions.includes("Show Cambio points on picture cards"),
+    showValuesOnPictureCards: selectedOptions.includes("Show points on picture cards"),
     canSnapOtherPlayers: selectedOptions.includes("Allow snapping others' cards"),
+    openHands: selectedOptions.includes("Play with open hands"),
   };
 
   function newGame() {
