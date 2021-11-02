@@ -10,10 +10,10 @@ import { Timer, shuffledDeck, shuffle } from "./utils";
 /** @typedef {import('./types').State} State */
 /** @typedef {import('./types').Update} Update */
 
-const INITIAL_VIEWING_INTRO_PAUSE = 1.5 * 1000;
+const INITIAL_VIEWING_INTRO_PAUSE = 3 * 1000;
 const INITIAL_VIEWING_TIME = 10 * 1000;
 const SNAP_SUSPENSION_TIME = 5 * 1000;
-const LOOK_TIME = 5 * 1000;
+const LOOK_TIME = 10 * 1000;
 const TABLE_CARD_SLOTS = 8;
 
 export default class Cambio {
@@ -945,16 +945,20 @@ export default class Cambio {
             hasTakenFinalTurn: true,
           });
         }
+        this.events.push({
+          type: "text",
+          message: "Your last turn",
+          recipientSessionIds: [this.currentTurnSessionId],
+        });
+      } else {
+        this.events.push({
+          type: "text",
+          message: "Your turn",
+          recipientSessionIds: [this.currentTurnSessionId],
+        });
       }
 
-      this.events.push({
-        type: "text",
-        message: "Your turn!",
-        recipientSessionIds: [this.currentTurnSessionId],
-      });
-
       this.state = "startingTurn";
-      console.log("Turn started");
       this.setCanBeTapped(this.state);
       resolve(this.sendStateToAll());
     });
