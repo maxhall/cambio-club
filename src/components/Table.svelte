@@ -2,6 +2,7 @@
   // @ts-check
   import Card from "./Card.svelte";
   import { fade } from "svelte/transition";
+  import solveLayout from "../solveLayout";
 
   /** @typedef {import('../types').MaskedCard} MaskedCardType */
   /** @type {MaskedCardType[]} */
@@ -18,12 +19,10 @@
   /** @type {string} */
   export let thisClientSessionId;
 
-  const cardWidth = 25;
-  const cardHeight = cardWidth * 1.4;
-  const cardGap = 7;
   const margin = 50;
   const playerLabelSize = 12;
-  const centreToTablePositionLowerBound = 125;
+  const playerLabelMargin = 18;
+
   // TODO: Do these need to be reactive?
   const currentTurnPlayer = players.find((p) => {
     p.sessionId === currentTurnSessionId;
@@ -43,36 +42,17 @@
   /** @type {number | undefined} */
   let clientWidth;
 
-  $: verticalSpaceForCards =
-    numberOrZero(clientHeight) - 6 * (cardHeight + cardGap) - 2 * margin;
-  $: horizontalSpaceForCards =
-    numberOrZero(clientWidth) - 6 * (cardHeight + cardGap);
-  $: computedCentreToTablePositionOffset =
-    verticalSpaceForCards > horizontalSpaceForCards
-      ? horizontalSpaceForCards / 2
-      : verticalSpaceForCards / 2;
-  $: centreToTablePositionOffset =
-    computedCentreToTablePositionOffset > centreToTablePositionLowerBound
-      ? computedCentreToTablePositionOffset
-      : centreToTablePositionLowerBound;
-  $: playerLabelOffset = centreToTablePositionOffset - 25;
+  $: availableHeight = (clientHeight) ? clientHeight - 2 * margin : 100;
+  $: availableWidth = (clientWidth) ? clientWidth : 100;
+  $: ({ cardWidth, cardHeight, cardGap, offsetFromCentre } = solveLayout(availableHeight, availableWidth, players.length, playerLabelMargin));
+  $: playerLabelOffset = offsetFromCentre - 25;
   $: cardsWithTransforms = addTransformsToCards(
     cards,
     players.length,
     cardWidth,
     cardGap,
-    centreToTablePositionOffset
+    offsetFromCentre
   );
-
-  /**
-   * @param {number | undefined} maybeNumber
-   */
-  function numberOrZero(maybeNumber) {
-    if (Number.isNaN(maybeNumber) || maybeNumber === undefined) {
-      return 0;
-    }
-    return maybeNumber;
-  }
 
   /**
    * @param {MaskedCardType[]} cards
