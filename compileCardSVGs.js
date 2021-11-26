@@ -8,56 +8,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const outputPath = path.resolve('static', 'cards');
 const suits = ['clubs', 'diamonds', 'hearts', 'spades'];
 const ranks = ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king'];
-
-// // Small deck
-// suits.forEach(suit => {
-//     const smallSuit = fs.readFileSync(path.resolve('card-components', 'suits', `${suit}-s.svg`), { encoding: "utf-8"});
-//     const smallSuitCleanPath = smallSuit.trim().split('\n').map(line => line.trim())[9].replace(' class="a" ', ' ');
-//     ranks.forEach(rank => {
-//         const smallRank = fs.readFileSync(path.resolve('card-components', 'ranks', `${rank}-s.svg`), { encoding: "utf-8"});
-//         let smallRankCleanPath = smallRank.trim().split('\n').map(line => line.trim())[9].replace(' class="a" ', ' ');
-//         if (rank === 10) {
-//             smallRankCleanPath = smallRank.trim().split('\n').map(line => line.trim().replace(' class="a" ', ' ')).slice(10, 12).join('');
-//         }
-//         const output = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="700">${smallSuitCleanPath}${smallRankCleanPath}</svg>`;
-//         fs.writeFileSync(path.resolve(outputPath, `${suit}-${rank}-s.svg`), output);
-//     });
-// });
-
-// // Small joker
-// const smallJoker = fs.readFileSync(path.resolve('card-components', 'ranks', `joker-s.svg`), { encoding: "utf-8"});
-// const smallJokerCleanPath = smallJoker.trim().split('\n').filter(line => line.includes('path')).map(line => line.trim().replace(' class="a" ', ' ')).join('');
-// const smallJokerCleanOutput = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="700">${smallJokerCleanPath}</svg>`;
-// fs.writeFileSync(path.resolve(outputPath, `joker-s.svg`), smallJokerCleanOutput);
-
-// // Medium deck
-// suits.forEach(suit => {
-//     const mediumSuit = fs.readFileSync(path.resolve('card-components', 'suits', `${suit}-m.svg`), { encoding: "utf-8"});
-//     const mediumSuitCleanPath = mediumSuit.trim().split('\n').map(line => line.trim().replace(' class="a" ', ' ')).slice(10, 13).join('');
-    
-//     ranks.forEach(rank => {
-//         const mediumRank = fs.readFileSync(path.resolve('card-components', 'ranks', `${rank}-m.svg`), { encoding: "utf-8"});
-//         let mediumRankCleanPath = mediumRank.trim().split('\n').map(line => line.trim().replace(' class="a" ', ' ')).slice(10, 12).join('');
-//         // Need lines 11, 12, 15, 16
-//         if (rank === 10) {
-//             const mediumRankParts = mediumRank.trim().split('\n').map(line => line.trim().replace(' class="a" ', ' '));
-//             mediumRankCleanPath = `${mediumRankParts[11]}${mediumRankParts[12]}${mediumRankParts[15]}${mediumRankParts[16]}`
-//         }
-//         const output = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="700">${mediumSuitCleanPath}${mediumRankCleanPath}</svg>`;
-        
-//         fs.writeFileSync(path.resolve(outputPath, `${suit}-${rank}-m.svg`), output);
-//     });
-// });
-
-// // Medium joker
-// const mediumJoker = fs.readFileSync(path.resolve('card-components', 'ranks', `joker-m.svg`), { encoding: "utf-8"});
-// const mediumJokerCleanPath = mediumJoker.trim().split('\n').filter(line => line.includes('path')).map(line => line.trim().replace(' class="a" ', ' ')).join('');
-// const mediumJokerCleanOutput = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="700">${mediumJokerCleanPath}</svg>`;
-// fs.writeFileSync(path.resolve(outputPath, `joker-m.svg`), mediumJokerCleanOutput);
-
 const finalStrings = { s: {}, m: {}};
 
 // Small suits
