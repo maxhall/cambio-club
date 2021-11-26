@@ -4,7 +4,7 @@ import { Timer, shuffledDeck, shuffle } from "./utils";
 
 /** @typedef {import('./types').Card} Card */
 /** @typedef {import('./types').MaskedCard} MaskedCard */
-/** @typedef {import("./types").CardPosition} CardPosition */
+/** @typedef {import('./types').CardPosition} CardPosition */
 /** @typedef {import('./types').PlayerData} PlayerData */
 /** @typedef {import('./types').SendStateToSession} SendStateToSession */
 /** @typedef {import('./types').State} State */
@@ -427,6 +427,7 @@ export default class Cambio {
       }
 
       this.state = "previewingCard";
+      this.setCanBeTapped(this.state);
 
       tappedCard.position = {
         area: "viewing",
@@ -462,6 +463,7 @@ export default class Cambio {
       }
 
       this.state = "previewingCard";
+      this.setCanBeTapped(this.state);
 
       tappedCard.position = {
         area: "viewing",
@@ -531,6 +533,7 @@ export default class Cambio {
       }
 
       this.state = "previewingCard";
+      this.setCanBeTapped(this.state);
 
       tappedCard.position = {
         area: "viewing",
@@ -849,7 +852,7 @@ export default class Cambio {
           card.position.area == "table" &&
           (card.position.tableSlot == 5 || card.position.tableSlot == 6)
         ) {
-          /** @type {import("./types").CardPosition} */
+          /** @type {import('./types').CardPosition} */
           const newPosition = {
             player: card.position.player,
             area: "viewing",
@@ -866,7 +869,7 @@ export default class Cambio {
         // Return viewingSlot 1 and 2 to tableSlot 5 and 6 respectively
         this.positionedCards.forEach((card) => {
           if (card.position.area == "viewing") {
-            /** @type {import("./types").CardPosition} */
+            /** @type {import('./types').CardPosition} */
             const newPosition = {
               player: card.position.player,
               area: "table",
@@ -1094,8 +1097,8 @@ export default class Cambio {
           ready: false,
           hasRequestedRematch: false,
           hasTakenFinalTurn: false,
-        })
-      };
+        });
+      }
 
       this.state = "settingUp";
       resolve(this.sendStateToAll());
