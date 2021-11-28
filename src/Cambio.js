@@ -288,27 +288,43 @@ export default class Cambio {
       /** @typedef {{tablePosition: number, name: string | null, sessionId: string, score: number}} ScoreData */
       /** @type {ScoreData[]} */
       const scores = [];
-      for (const player of this.players.entries()) {
-        const [sessionId, data] = player;
+      for (const [sessionId, data] of this.players.entries()) {
+        const playerTableCards = this.positionedCards.filter(
+          (card) =>
+            card.position.area === "table" &&
+            data.tablePosition === card.position.player
+        );
+        let score = 0;
+
+        if (this.options.riskyFives) {
+          const numberOfFives = playerTableCards.filter(
+            (c) => c.value === 5
+          ).length;
+
+          if (numberOfFives == 2) score = score - 25;
+          if (numberOfFives == 1) score = score + 50;
+
+          playerTableCards
+            // Fives have already been counted
+            .filter((c) => c.value !== 5)
+            .forEach((c) => {
+              score = score + c.value;
+            });
+        } else {
+          playerTableCards.forEach((c) => {
+            score = score + c.value;
+          });
+        }
+
         scores.push({
           tablePosition: data.tablePosition,
           name: data.name,
           sessionId,
-          score: 0,
+          score,
         });
       }
 
-      this.positionedCards.forEach((card) => {
-        if (card.position.area !== "table") return;
-        const player = scores.find(
-          (s) =>
-            card.position.area === "table" &&
-            s.tablePosition === card.position.player
-        );
-        if (player) {
-          player.score = player.score + card.value;
-        }
-      });
+      console.log(scores);
 
       const winner = scores.sort((a, b) => {
         return a.score - b.score;

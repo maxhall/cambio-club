@@ -7,9 +7,9 @@ export const socketConnectionAuth = z.object({
 });
 
 export const gameOptionsSchema = z.object({
-  showValuesOnPictureCards: z.boolean(),
   canSnapOtherPlayers: z.boolean(),
   openHands: z.boolean(),
+  riskyFives: z.boolean(),
 });
 
 /**

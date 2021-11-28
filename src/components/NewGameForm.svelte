@@ -4,15 +4,15 @@
   let selectedOptions = ["Allow snapping others' cards"];
   const options = [
     "Allow snapping others' cards",
-    "Show points on picture cards",
-    "Play with open hands"
+    "Play with open hands",
+    "Risky fives: -25 for two, +50 for one"
   ];
   
   /** @type {import('../types').GameOptions} */
   $: optionsObject = {
-    showValuesOnPictureCards: selectedOptions.includes("Show points on picture cards"),
     canSnapOtherPlayers: selectedOptions.includes("Allow snapping others' cards"),
     openHands: selectedOptions.includes("Play with open hands"),
+    riskyFives: selectedOptions.includes("Risky fives: -25 for two, +50 for one")
   };
 
   function newGame() {
@@ -29,7 +29,7 @@
 </script>
 
 <form>
-  <h2>Start a new game</h2>
+  <button on:click|preventDefault={newGame}>Start a new game</button>
   {#each options as option}
     <label
       ><input
@@ -39,5 +39,10 @@
       />{option}</label
     >
   {/each}
-  <button on:click|preventDefault={newGame}>Create game</button>
 </form>
+
+<style>
+  label {
+    display: block;
+  }
+</style>
