@@ -525,6 +525,26 @@ export default class Cambio {
       ) {
         tappedCard.position = this.savedSnappedCardPosition;
 
+        const snappersRemainingTableCards = this.positionedCards.filter(
+          (c) =>
+            c.position.area === "table" &&
+            c.position.player === snappingPlayerTablePosition
+        ).length;
+        if (snappersRemainingTableCards === 0) {
+          this.isCambioRound = true;
+          const snapperData = this.players.get(this.playerWhoSnapped);
+          if (snapperData) {
+            this.players.set(this.playerWhoSnapped, {
+              ...snapperData,
+              hasTakenFinalTurn: true,
+            });
+            this.events.push({
+              type: "text",
+              message: `Cambio! ${snapperData.name} is out of cards`,
+            });
+          }
+        }
+
         this.restorePresnapState();
         resolve(this.sendStateToAll());
       }
@@ -956,30 +976,34 @@ export default class Cambio {
       );
       console.log(`Next turn session id: ${this.currentTurnSessionId}`);
 
-      if (this.isCambioRound) {
-        const currentPlayerData = this.players.get(this.currentTurnSessionId);
-        if (currentPlayerData) {
-          this.players.set(this.currentTurnSessionId, {
-            ...currentPlayerData,
-            hasTakenFinalTurn: true,
+      const currentPlayerData = this.players.get(this.currentTurnSessionId);
+      if (currentPlayerData?.hasTakenFinalTurn) {
+        resolve(this.nextTurn());
+      } else {
+        if (this.isCambioRound) {
+          if (currentPlayerData) {
+            this.players.set(this.currentTurnSessionId, {
+              ...currentPlayerData,
+              hasTakenFinalTurn: true,
+            });
+          }
+          this.events.push({
+            type: "text",
+            message: "Your last turn",
+            recipientSessionIds: [this.currentTurnSessionId],
+          });
+        } else {
+          this.events.push({
+            type: "text",
+            message: "Your turn",
+            recipientSessionIds: [this.currentTurnSessionId],
           });
         }
-        this.events.push({
-          type: "text",
-          message: "Your last turn",
-          recipientSessionIds: [this.currentTurnSessionId],
-        });
-      } else {
-        this.events.push({
-          type: "text",
-          message: "Your turn",
-          recipientSessionIds: [this.currentTurnSessionId],
-        });
+  
+        this.state = "startingTurn";
+        this.setCanBeTapped(this.state);
+        resolve(this.sendStateToAll());
       }
-
-      this.state = "startingTurn";
-      this.setCanBeTapped(this.state);
-      resolve(this.sendStateToAll());
     });
   }
 
@@ -1227,6 +1251,26 @@ export default class Cambio {
               snappingPlayerTablePosition
             ),
           };
+        }
+      }
+
+      const snappersRemainingTableCards = this.positionedCards.filter(
+        (c) =>
+          c.position.area === "table" &&
+          c.position.player === snappingPlayerTablePosition
+      ).length;
+      if (snappersRemainingTableCards === 0) {
+        this.isCambioRound = true;
+        const snapperData = this.players.get(this.playerWhoSnapped);
+        if (snapperData) {
+          this.players.set(this.playerWhoSnapped, {
+            ...snapperData,
+            hasTakenFinalTurn: true,
+          });
+          this.events.push({
+            type: "text",
+            message: `Cambio! ${snapperData.name} is out of cards`,
+          });
         }
       }
 
