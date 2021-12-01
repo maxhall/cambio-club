@@ -1,8 +1,8 @@
 <script>
 	import { tweened } from 'svelte/motion';
 	
-    export let suit;
-    export let rank;
+    // export let suit;
+    // export let rank;
 	export let initial = {
 		x: 0,
 		y: -100,
