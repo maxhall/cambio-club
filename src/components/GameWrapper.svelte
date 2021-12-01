@@ -96,36 +96,47 @@
   }
 </script>
 
-{#if status === "error"}
-  <h1>Error</h1>
-  <p>{errorMessage}</p>
-  <NewGameForm />
-{:else if status === "starting"}
-  <p>Loading...</p>
-{:else if status === "creatingName"}
-  <form on:submit|preventDefault={handleNameChoice}>
-    <label for="choose-name"
-      >Choose a name:<input
-        type="text"
-        bind:value={name}
-        name="choose-name"
-        id="choose-name"
-      /></label
-    >
-    <button on:click={handleNameChoice}>Submit</button>
-    {#if nameError}
-      <p>{nameError}</p>
-    {/if}
-  </form>
-{:else if status === "waitingForReady"}
-  <ol>
-    {#each state.players as player}
-      <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
-    {/each}
-  </ol>
-  {#if !hasIndicatedReady}
-    <button on:click={handleReady}>I'm ready to play</button>
-  {/if}
-{:else if status === "playing"}
+{#if status === "playing"}
   <Game {state} {socket} />
+{:else}
+  <main>
+    {#if status === "error"}
+      <h1>Error</h1>
+      <p>{errorMessage}</p>
+      <NewGameForm />
+    {:else if status === "starting"}
+      <p>Loading...</p>
+    {:else if status === "creatingName"}
+      <form on:submit|preventDefault={handleNameChoice}>
+        <label for="choose-name"
+          >Choose a name:<input
+            type="text"
+            bind:value={name}
+            name="choose-name"
+            id="choose-name"
+          /></label
+        >
+        <button on:click={handleNameChoice}>Submit</button>
+        {#if nameError}
+          <p>{nameError}</p>
+        {/if}
+      </form>
+    {:else if status === "waitingForReady"}
+      <ol>
+        {#each state.players as player}
+          <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
+        {/each}
+      </ol>
+      {#if !hasIndicatedReady}
+        <button on:click={handleReady}>I'm ready to play</button>
+      {/if}
+    {/if}
+  </main>
 {/if}
+
+<style>
+  main {
+    max-width: 20em;
+    margin: 4rem auto; 
+  }
+</style>

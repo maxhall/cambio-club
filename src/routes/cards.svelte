@@ -10,6 +10,7 @@
     <article>
       <Card
         rank="joker"
+        facedown={true}
         suit={undefined}
         width={size}
         height={size * 1.4}
@@ -21,6 +22,7 @@
     </article>
   {/each}
 </main>
+<div class="overlay"></div>
 
 <style>
   main {

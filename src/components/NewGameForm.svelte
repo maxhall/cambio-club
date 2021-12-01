@@ -4,15 +4,15 @@
   let selectedOptions = ["Allow snapping others' cards"];
   const options = [
     "Allow snapping others' cards",
-    "Play with open hands",
+    "Open hands",
     "Risky fives: -25 for two, +50 for one"
   ];
   
   /** @type {import('../types').GameOptions} */
   $: optionsObject = {
     canSnapOtherPlayers: selectedOptions.includes("Allow snapping others' cards"),
-    openHands: selectedOptions.includes("Play with open hands"),
-    riskyFives: selectedOptions.includes("Risky fives: -25 for two, +50 for one")
+    riskyFives: selectedOptions.includes("Risky fives: -25 for two, +50 for one"),
+    openHands: selectedOptions.includes("Open hands"),
   };
 
   function newGame() {

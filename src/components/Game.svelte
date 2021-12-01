@@ -2,6 +2,7 @@
   import Table from "./Table.svelte";
   import { fly } from "svelte/transition";
   import CountdownBar from "./CountdownBar.svelte";
+  import Logo from "./Logo.svelte";
   /** @type {import('../types').ClientState} */
   export let state;
   /** @type {import('socket.io-client').Socket} */
@@ -109,7 +110,9 @@
 
 <div style="height: 100%;">
   <header>
-    <p>Game {state.gameId}</p>
+    <p class="game-id">Game {state.gameId}</p>
+    <Logo />
+    <p>Rules</p>
     <button on:click={handleLeave}>Leave</button>
   </header>
   <Table
@@ -152,15 +155,6 @@
 </div>
 
 <style>
-  :global(html) {
-    height: 100vh;
-  }
-
-  :global(body) {
-    margin: 0;
-    box-sizing: border-box;
-    background-color: green;
-  }
 
   header {
     position: fixed;
@@ -187,6 +181,5 @@
     height: 50px;
     display: flex;
     justify-content: center;
-    background-color: white;
   }
 </style>

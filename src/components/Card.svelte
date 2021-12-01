@@ -113,15 +113,30 @@
 <div
   on:click={handleClick}
   class="card"
-  class:facedown
   class:selected
   class:canBeTapped
   style="height: {height}px; width: {width}px; transform: translate({$tweenedTransforms.xTranslation}px, {$tweenedTransforms.yTranslation}px) rotate({$tweenedTransforms.rotation}turn);"
 >
   {#if !facedown}
-    <div>
-      {@html svgString}
-    </div>
+    {@html svgString}
+  {:else}
+    <!-- <svg viewBox="0 0 500 700">
+      <defs>
+        <pattern
+          id="polka-dots"
+          x="0"
+          y="0"
+          width="100"
+          height="100"
+          patternUnits="userSpaceOnUse"
+        >
+          <circle fill="#bee9e8" cx="50" cy="50" r="25" />
+        </pattern>
+      </defs>
+      <path d="M 50 50 H 400 V 600 H 400 Z" fill="transparent" stroke="black" stroke-width="20"/>
+      <rect x="0" y="0" width="100%" height="100%" fill="url(#polka-dots)" />
+    </svg> -->
+    <div class="chevron" />
   {/if}
 </div>
 
@@ -136,10 +151,16 @@
     justify-content: center;
   }
 
-  .facedown {
-    background-color: purple;
+  .chevron {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #eceddc 25%, transparent 25%) -50px 0,
+      linear-gradient(225deg, #eceddc 25%, transparent 25%) -50px 0,
+      linear-gradient(315deg, #eceddc 25%, transparent 25%),
+      linear-gradient(45deg, #eceddc 25%, transparent 25%);
+    background-size: 100px 100px;
+    background-color: #ec173a;
   }
-
   .canBeTapped {
     border: 2px solid orange;
   }
