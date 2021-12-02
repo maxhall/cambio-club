@@ -101,8 +101,7 @@
 {:else}
   <main>
     {#if status === "error"}
-      <h1>Error</h1>
-      <p>{errorMessage}</p>
+      <h1>{errorMessage}</h1>
       <NewGameForm />
     {:else if status === "starting"}
       <p>Loading...</p>
