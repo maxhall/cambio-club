@@ -2,7 +2,8 @@
   import Table from "./Table.svelte";
   import { fly } from "svelte/transition";
   import CountdownBar from "./CountdownBar.svelte";
-  import Logo from "./Logo.svelte";
+  import Modal from "./Modal.svelte";
+  import Rules from "./Rules.svelte";
   /** @type {import('../types').ClientState} */
   export let state;
   /** @type {import('socket.io-client').Socket} */
@@ -14,6 +15,8 @@
   /** @type {NodeJS.Timeout | undefined} */
   let eventTextQueueTimer;
   let hasRequestedRematch = false;
+  let showRulesModal = false;
+  let showLeaveModal = false;
 
   const eventTextTimeout = 3000;
   const statesAllowingEndTurn = [
@@ -110,10 +113,9 @@
 
 <div style="height: 100%;">
   <header>
-    <p class="game-id">Game {state.gameId}</p>
-    <Logo />
-    <p>Rules</p>
-    <button on:click={handleLeave}>Leave</button>
+    <button on:click={() => (showLeaveModal = true)}>Leave</button>
+    <p class="game-id">Cambio game {state.gameId}</p>
+    <button on:click={() => (showRulesModal = true)}>Rules</button>
   </header>
   <Table
     cards={state.cards}
@@ -154,13 +156,27 @@
   </footer>
 </div>
 
-<style>
+{#if showRulesModal}
+  <Modal on:close={() => (showRulesModal = false)}><Rules /></Modal>
+{/if}
 
+{#if showLeaveModal}
+  <Modal on:close={() => (showLeaveModal = false)}>
+    <h2>Are you sure you want to leave?</h2>
+    <p>This will end the game for everyone</p>
+    <button on:click={handleLeave}>Leave</button>
+  </Modal>
+{/if}
+
+<style>
   header {
     position: fixed;
     top: 0;
     padding: 0.25em;
     display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    z-index: 100;
   }
 
   footer {

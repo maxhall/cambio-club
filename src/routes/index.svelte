@@ -27,7 +27,7 @@
 
 <main>
   <form>
-    <label for="game-id">Enter a game code:</label>
+    <label for="game-id"><h2>Enter a game code</h2></label>
     <input bind:value={gameId} type="text" name="room" id="game-id" />
     <button on:click|preventDefault={joinGame}>Join</button>
     {#if joinError}
@@ -35,18 +35,26 @@
     {/if}
   </form>
   <NewGameForm />
-  <p>What is Cambio?</p>
+  <h2>What is Cambio?</h2>
 </main>
 
 <style>
   label, button {
     display: block;
   }
+
   form {
     margin: 0 0 3rem 0;
   }
 
+  h2 {
+    text-align: center;
+  }
+  
   main {
+    padding: 2rem;
+    border-radius: 1rem;
+    background-color: #fff;
     max-width: 30em;
     margin: 0 auto;
   }

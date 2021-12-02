@@ -1,5 +1,6 @@
 html {
 	height: 100vh;
+	font-size: 22px;
 }
 
 body {
@@ -19,7 +20,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-	font-size: 2em;
+	font-size: 2rem;
 }
 
 a {
@@ -43,4 +44,11 @@ code {
 
 .red {
     fill: red;
+}
+
+button {
+	border-radius: 0%;
+background-color: white;
+border: 1.5px solid black;
+padding: 1rem;
 }
