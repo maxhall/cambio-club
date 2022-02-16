@@ -1,6 +1,8 @@
 <script>
   // @ts-check
   import { goto } from "@sapper/app";
+
+  let showOptions = false;
   let selectedOptions = ["Allow snapping others' cards"];
   const options = [
     "Allow snapping others' cards",
@@ -29,20 +31,32 @@
 </script>
 
 <form>
-  <button on:click|preventDefault={newGame}>Start a new game</button>
-  {#each options as option}
-    <label
-      ><input
-        type="checkbox"
-        value={option}
-        bind:group={selectedOptions}
-      />{option}</label
-    >
-  {/each}
+  <button on:click|preventDefault={newGame}>Start new game</button>
+  <button class="toggle" on:click|preventDefault="{() => (showOptions = !showOptions)}">
+    Options
+  </button>
+  {#if showOptions}
+    {#each options as option}
+      <label
+        ><input
+          type="checkbox" 
+          value={option}
+          bind:group={selectedOptions}
+        />{option}</label
+      >
+    {/each}
+  {/if}
 </form>
 
 <style>
   label {
     display: block;
+  }
+  
+  .toggle {
+    display: block;
+    border: none;
+    margin: 0;
+    padding: 0;
   }
 </style>

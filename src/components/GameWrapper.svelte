@@ -99,7 +99,8 @@
 {#if status === "playing"}
   <Game {state} {socket} />
 {:else}
-  <main>
+<div class="pane-wrapper">
+  <div class="pane">
     {#if status === "error"}
       <h1>{errorMessage}</h1>
       <NewGameForm />
@@ -130,12 +131,6 @@
         <button on:click={handleReady}>I'm ready to play</button>
       {/if}
     {/if}
-  </main>
+    </div>
+  </div>
 {/if}
-
-<style>
-  main {
-    max-width: 20em;
-    margin: 4rem auto; 
-  }
-</style>

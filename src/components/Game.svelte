@@ -25,6 +25,10 @@
     "awaitingQueenLookChoice",
     "awaitingQueenSwapOwnChoice",
   ];
+  const actionButtonTranstionParameters = {
+    y: 50,
+    duration: 250
+  };
 
   $: isMyTurn = state.sessionId === state.currentTurnSessionId;
   $: console.log(state);
@@ -113,7 +117,9 @@
 
 <div style="height: 100%;">
   <header>
-    <button on:click={() => (showLeaveModal = true)}>Leave</button>
+    <button class="lowkey-button" on:click={() => (showLeaveModal = true)}
+      >Leave</button
+    >
     <p class="game-id">Cambio game {state.gameId}</p>
     <button on:click={() => (showRulesModal = true)}>Rules</button>
   </header>
@@ -136,22 +142,36 @@
       </p>
     {/if}
     <CountdownBar countdown={state.countdown} />
-    <section class="button-wrapper">
-      {#if isMyTurn && state.state === "startingTurn"}
-        <button on:click={handleCambio}>Cambio</button>
-      {/if}
-      {#if state.canBeSnapped}
-        <button on:click={handleSnap}>Snap</button>
-      {/if}
-      {#if isMyTurn && state.state === "startingTurn"}
-        <button on:click={handlePass}>Pass</button>
-      {/if}
-      {#if isMyTurn && statesAllowingEndTurn.includes(state.state)}
-        <button on:click={handlePass}>End turn</button>
-      {/if}
-      {#if state.state === "gameOver" && !hasRequestedRematch}
-        <button on:click={handleRematch}>Play again</button>
-      {/if}
+    <section class="actions-wrapper">
+      <div class="actions-inner">
+        <div class="slot-1">
+          {#if isMyTurn && state.state === "startingTurn"}
+          <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handleCambio}
+          >Cambio</button
+          >
+          {/if}
+        </div>
+        <div class="slot-2">
+          {#if state.canBeSnapped}
+            <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handleSnap}>Snap</button>
+          {/if}
+          {#if state.state === "gameOver" && !hasRequestedRematch}
+            <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handleRematch}
+              >Play again</button
+            >
+          {/if}
+        </div>
+        <div class="slot-3">
+          {#if isMyTurn && state.state === "startingTurn"}
+            <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handlePass}>Pass</button>
+          {/if}
+          {#if isMyTurn && statesAllowingEndTurn.includes(state.state)}
+            <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handlePass}
+              >End turn</button
+            >
+          {/if}
+        </div>
+      </div>
     </section>
   </footer>
 </div>
@@ -170,12 +190,15 @@
 
 <style>
   header {
+    width: 100%;
     position: fixed;
     top: 0;
-    padding: 0.25em;
+    padding: 0;
+    margin: 0;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    align-items: center;
     z-index: 100;
   }
 
@@ -193,9 +216,20 @@
     margin: 0 auto;
   }
 
-  .button-wrapper {
-    height: 50px;
+  .actions-wrapper {
+    height: 2rem;
+    width: 100%;
     display: flex;
     justify-content: center;
+  }
+
+  .actions-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .actions-button {
+    height: 100%;
+    width: 4rem;
   }
 </style>
