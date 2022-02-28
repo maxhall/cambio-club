@@ -23,28 +23,25 @@
   const playerLabelSize = 12;
   const playerLabelMargin = 18;
 
-  // TODO: Do these need to be reactive?
-  const currentTurnPlayer = players.find((p) => {
-    p.sessionId === currentTurnSessionId;
-  });
-  const currentTurnPosition = currentTurnPlayer
-    ? currentTurnPlayer.tablePosition
-    : 0;
-  const thisPlayer = players.find((p) => {
-    return thisClientSessionId === p.sessionId;
-  });
-  // This is subtracted from each rotation calculation so the player's browser always
-  // shows their cards and info at the bottom
-  const localTablePositionOffset = thisPlayer ? thisPlayer.tablePosition : 0;
-
   /** @type {number | undefined} */
   let clientHeight;
   /** @type {number | undefined} */
   let clientWidth;
 
-  $: availableHeight = (clientHeight) ? clientHeight - 2 * margin : 100;
-  $: availableWidth = (clientWidth) ? clientWidth : 100;
-  $: ({ cardWidth, cardHeight, cardGap, offsetFromCentre } = solveLayout(availableHeight, availableWidth, players.length, playerLabelMargin));
+  $: thisPlayer = players.find((p) => {
+    return thisClientSessionId === p.sessionId;
+  });
+  // This is subtracted from each rotation calculation so the player's browser always
+  // shows their cards and info at the bottom
+  $: localTablePositionOffset = thisPlayer ? thisPlayer.tablePosition : 0;
+  $: availableHeight = clientHeight ? clientHeight - 2 * margin : 100;
+  $: availableWidth = clientWidth ? clientWidth : 100;
+  $: ({ cardWidth, cardHeight, cardGap, offsetFromCentre } = solveLayout(
+    availableHeight,
+    availableWidth,
+    players.length,
+    playerLabelMargin
+  ));
   $: playerLabelOffset = offsetFromCentre - 25;
   $: cardsWithTransforms = addTransformsToCards(
     cards,
@@ -183,29 +180,30 @@
           {gameId}
         />
       {/each}
-      {#each players as player}
-        <div
-          style="transform: rotate({(1 / players.length) *
-            (player.tablePosition -
-              localTablePositionOffset)}turn); font-size: {playerLabelSize}px;"
-        >
+      {#key currentTurnSessionId}
+        {#each players as player}
           <div
-            style="transform: translateY({playerLabelOffset}px) {correctNameOrientation(
-              player.tablePosition
-            )
-              ? 'rotate(0.5turn)'
-              : ''};"
+            style="transform: rotate({(1 / players.length) *
+              (player.tablePosition -
+                localTablePositionOffset)}turn); font-size: {playerLabelSize}px;"
           >
-            <p
-              class="label"
-              class:current-player={player.tablePosition ===
-                currentTurnPosition}
+            <div
+              style="transform: translateY({playerLabelOffset}px) {correctNameOrientation(
+                player.tablePosition
+              )
+                ? 'rotate(0.5turn)'
+                : ''};"
             >
-              {player.name}
-            </p>
+              <p
+                class="label"
+                class:current-player={player.sessionId === currentTurnSessionId}
+              >
+                {player.name}
+              </p>
+            </div>
           </div>
-        </div>
-      {/each}
+        {/each}
+      {/key}
     </div>
   {/if}
 </div>
@@ -216,6 +214,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    background-color: #212f59;
   }
 
   .card-area {
