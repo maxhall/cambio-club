@@ -781,6 +781,8 @@ export default class Cambio {
           }
           this.state = "exit";
           this.players.delete(sessionId);
+          if (this.viewingTimer) this.viewingTimer.remove();
+          if (this.snapSuspensionTimer) this.snapSuspensionTimer.remove();
           resolve(this.sendStateToAll());
           break;
 

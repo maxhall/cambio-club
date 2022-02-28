@@ -96,7 +96,7 @@
   }
 </script>
 
-{#if status === "playing"}
+{#if status === "playing" && state.state !== "exit"}
   <Game {state} {socket} />
 {:else}
 <div class="pane-wrapper">
@@ -130,6 +130,10 @@
       {#if !hasIndicatedReady}
         <button on:click={handleReady}>I'm ready to play</button>
       {/if}
+    {:else if state.state === "exit"}
+      <h1>Game over</h1>
+      <p>Another player exited the game</p>
+      <NewGameForm />
     {/if}
     </div>
   </div>
