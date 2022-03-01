@@ -21,7 +21,7 @@ export default function solveLayout(
    **/
   const dimensionsGivenCardWidth = (width, numberOfPlayers, labelMargin) => {
     const cardHeight = width * 1.4;
-    const cardGap = width * 0.25;
+    const cardGap = (availableHeight > 1000 || availableWidth > 1000) ? width * 0.15 : width * 0.25;
     const side = 4 * width + 3 * cardGap;
     // For 2 players, there's no apothem so cardHeight * 2 gives enough room
     // Otherwise calculate the apothem or inradius of the polygon and add cardHeight / 2
