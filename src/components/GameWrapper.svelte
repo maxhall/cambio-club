@@ -50,6 +50,8 @@
           status = "playing";
         } else if (data.name) {
           status = "waitingForReady";
+          // Same as above, but necessary at this point for when player's are rematching
+          if (gameComponent) gameComponent.$destroy();
         } else {
           status = "creatingName";
         }
