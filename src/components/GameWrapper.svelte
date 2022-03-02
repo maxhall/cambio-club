@@ -7,7 +7,7 @@
 
   /** @type {string} */
   export let gameId;
-  /** @type {'starting' | 'error' | 'creatingName' | 'waitingForReady' | 'playing'} */
+  /** @type {'starting' | 'error' | 'creatingName' | 'waitingForReady' | 'playing' | 'exit'} */
   let status = "starting";
   /** @type {string} */
   let errorMessage;
@@ -18,6 +18,8 @@
   /** @type {import('../types').ClientState} */
   let state;
   let hasIndicatedReady = false;
+  /** @type {import('svelte').SvelteComponent}*/
+  let gameComponent;
 
   const socket = io({ autoConnect: false });
 
@@ -39,13 +41,20 @@
 
         state = data;
 
-        if (data.name && data.state !== "settingUp") {
+        if (data.state == "exit") {
+          status = "exit";
+          // This is gross, but the component was not being destroyed automatically.
+          // Likely related to: https://github.com/sveltejs/svelte/issues/5268
+          gameComponent.$destroy();
+        } else if (data.name && data.state !== "settingUp") {
           status = "playing";
         } else if (data.name) {
           status = "waitingForReady";
         } else {
           status = "creatingName";
         }
+
+        console.log(data);
       }
     );
 
@@ -96,45 +105,45 @@
   }
 </script>
 
-{#if status === "playing" && state.state !== "exit"}
-  <Game {state} {socket} />
+{#if status === "playing"}
+  <Game bind:this={gameComponent} {state} {socket} />
 {:else}
-<div class="pane-wrapper">
-  <div class="pane">
-    {#if status === "error"}
-      <h1>{errorMessage}</h1>
-      <NewGameForm />
-    {:else if status === "starting"}
-      <p>Loading...</p>
-    {:else if status === "creatingName"}
-      <form on:submit|preventDefault={handleNameChoice}>
-        <label for="choose-name"
-          >Choose a name:<input
-            type="text"
-            bind:value={name}
-            name="choose-name"
-            id="choose-name"
-          /></label
-        >
-        <button on:click={handleNameChoice}>Submit</button>
-        {#if nameError}
-          <p>{nameError}</p>
+  <div class="pane-wrapper">
+    <div class="pane">
+      {#if status === "error"}
+        <h1>{errorMessage}</h1>
+        <NewGameForm />
+      {:else if status === "starting"}
+        <p>Loading...</p>
+      {:else if status === "creatingName"}
+        <form on:submit|preventDefault={handleNameChoice}>
+          <label for="choose-name"
+            >Choose a name:<input
+              type="text"
+              bind:value={name}
+              name="choose-name"
+              id="choose-name"
+            /></label
+          >
+          <button on:click={handleNameChoice}>Submit</button>
+          {#if nameError}
+            <p>{nameError}</p>
+          {/if}
+        </form>
+      {:else if status === "waitingForReady"}
+        <ol>
+          {#each state.players as player}
+            <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
+          {/each}
+        </ol>
+        {#if !hasIndicatedReady}
+          <button on:click={handleReady}>I'm ready to play</button>
         {/if}
-      </form>
-    {:else if status === "waitingForReady"}
-      <ol>
-        {#each state.players as player}
-          <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
-        {/each}
-      </ol>
-      {#if !hasIndicatedReady}
-        <button on:click={handleReady}>I'm ready to play</button>
+      {:else if status === "exit"}
+        <h1>Game over</h1>
+        <p>Another player exited the game</p>
+        <NewGameForm />
       {/if}
-    {:else if state.state === "exit"}
-      <h1>Game over</h1>
-      <p>Another player exited the game</p>
-      <NewGameForm />
-    {/if}
     </div>
   </div>
 {/if}
