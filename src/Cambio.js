@@ -546,8 +546,9 @@ export default class Cambio {
         }
 
         this.restorePresnapState();
-        resolve(this.sendStateToAll());
       }
+
+      resolve(this.sendStateToAll());
     });
   }
 
@@ -1225,9 +1226,10 @@ export default class Cambio {
           type: "text",
           message: `Choose a card to give to ${snappedOnName}`,
         });
+        // TODO: Should this be done in `setCanBeTapped`? Or such an edge case it can stay here
         // mark all the snapping player's cards as canBeTapped
         this.positionedCards.forEach((card) => {
-          card.facedown =
+          card.canBeTapped =
             card.position.area === "table" &&
             card.position.player === snappingPlayerTablePosition;
         });
