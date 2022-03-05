@@ -60,9 +60,9 @@ export default class Cambio {
       awaitingMineLookChoice: ["tapCard", "snap", "leave", "pass"],
       awaitingQueenLookChoice: ["tapCard", "snap", "leave", "pass"],
       awaitingQueenSwapOwnChoice: ["tapCard", "snap", "leave", "pass"],
-      awaitingQueenSwapOtherChoice: ["tapCard", "leave"],
+      awaitingQueenSwapOtherChoice: ["tapCard", "leave", "pass"],
       awaitingBlindSwapOwnChoice: ["tapCard", "snap", "leave"],
-      awaitingBlindSwapOtherChoice: ["tapCard", "leave"],
+      awaitingBlindSwapOtherChoice: ["tapCard", "leave", "pass"],
       gameOver: ["requestRematch", "leave"],
       exit: [],
       // TODO: Including "leave" in these is probably meaningless because the updates are gated when

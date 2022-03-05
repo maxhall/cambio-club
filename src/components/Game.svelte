@@ -27,14 +27,36 @@
   ];
   const actionButtonTranstionParameters = {
     y: 50,
-    duration: 250
+    duration: 250,
   };
 
   $: isMyTurn = state.sessionId === state.currentTurnSessionId;
-  $: console.log(state);
   // If events get funky, find a non-reactive approach to this
   $: if (state.events.length > 0) processEvents(state.events);
   $: if (state.state === "settingUp") hasRequestedRematch = false;
+  $: showEndTurnButton = isEndTurnButtonVisible(state);
+
+  /** @param state {import('../types').ClientState} */
+  function isEndTurnButtonVisible(state) {
+    if (statesAllowingEndTurn.includes(state.state)) return true;
+
+    const isTwoPlayerSpecialCase =
+      state.players.length === 2 &&
+      (state.state === "awaitingBlindSwapOtherChoice" ||
+        state.state === "awaitingQueenSwapOtherChoice");
+    const opponentTablePosition = state.players.find(
+      (p) => p.sessionId !== state.sessionId
+    )?.tablePosition;
+    const opponentHasCards = state.cards.some(
+      (c) =>
+        c.position.area === "table" &&
+        c.position.player === opponentTablePosition
+    );
+
+    if (isTwoPlayerSpecialCase && !opponentHasCards) return true;
+
+    return false;
+  }
 
   async function handleLeave() {
     console.log("Leaving");
@@ -120,7 +142,7 @@
     <button class="lowkey-button" on:click={() => (showLeaveModal = true)}
       >Leave</button
     >
-    <p class="game-id">Cambio game {state.gameId}</p>
+    <p class="game-id">Game {state.gameId}</p>
     <button on:click={() => (showRulesModal = true)}>Rules</button>
   </header>
   <Table
@@ -146,28 +168,42 @@
       <div class="actions-inner">
         <div class="slot-1">
           {#if isMyTurn && state.state === "startingTurn"}
-          <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handleCambio}
-          >Cambio</button
-          >
+            <button
+              transition:fly={actionButtonTranstionParameters}
+              class="actions-button"
+              on:click={handleCambio}>Cambio</button
+            >
           {/if}
         </div>
         <div class="slot-2">
           {#if state.canBeSnapped}
-            <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handleSnap}>Snap</button>
+            <button
+              transition:fly={actionButtonTranstionParameters}
+              class="actions-button"
+              on:click={handleSnap}>Snap</button
+            >
           {/if}
           {#if state.state === "gameOver" && !hasRequestedRematch}
-            <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handleRematch}
-              >Play again</button
+            <button
+              transition:fly={actionButtonTranstionParameters}
+              class="actions-button"
+              on:click={handleRematch}>Play again</button
             >
           {/if}
         </div>
         <div class="slot-3">
           {#if isMyTurn && state.state === "startingTurn"}
-            <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handlePass}>Pass</button>
+            <button
+              transition:fly={actionButtonTranstionParameters}
+              class="actions-button"
+              on:click={handlePass}>Pass</button
+            >
           {/if}
-          {#if isMyTurn && statesAllowingEndTurn.includes(state.state)}
-            <button transition:fly="{actionButtonTranstionParameters}" class="actions-button" on:click={handlePass}
-              >End turn</button
+          {#if isMyTurn && showEndTurnButton}
+            <button
+              transition:fly={actionButtonTranstionParameters}
+              class="actions-button"
+              on:click={handlePass}>End turn</button
             >
           {/if}
         </div>
