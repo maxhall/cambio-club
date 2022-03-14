@@ -39,10 +39,19 @@
   }
 </script>
 
-<CountdownBar {countdown} />
+<div class="bar-container">
+  <CountdownBar {countdown} />
+</div>
 <CountdownPie {countdown} />
 
 <button on:click={() => updateCountdown(c1)}>60 seconds</button>
 <button on:click={() => updateCountdown(c2)}>3 seconds</button>
 <button on:click={() => updateCountdown(c3)}>4 seconds orange</button>
 <button on:click={() => updateCountdown(c4)}>Remove</button>
+
+<style>
+  .bar-container {
+    width: 14.5rem;
+    margin: 0 auto;
+  }
+</style>

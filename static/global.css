@@ -1,3 +1,14 @@
+@font-face {
+	font-family: Rubik;
+	src: url('Rubik-Regular.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: Rubik;
+	src: url('Rubik-ExtraBold.woff2') format('woff2');
+	font-weight: 800;
+}
+
 * {
 	box-sizing: border-box;
 }
@@ -8,16 +19,15 @@
 
 html {
 	height: 100vh;
+	font-family: Rubik, sans-serif;
 	font-size: 25px;
 }
 
 body {
 	margin: 0;
-	font-family: "Georgia", Serif;
 	font-size: 20px;
 	line-height: 1.25;
     box-sizing: border-box;
-    /* background-color: hsl(-138deg, 50%, 40%); */
 }
 
 p {

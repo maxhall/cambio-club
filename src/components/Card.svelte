@@ -65,7 +65,7 @@
       <CardPath {width} {rank} {suit} />
     </svg>
   {:else}
-    <div class="chevron" />
+    <img class="back" src="bread.png" alt="Beautiful loaves of bread arrayed on a table">
   {/if}
 </div>
 
@@ -80,16 +80,13 @@
     justify-content: center;
   }
 
-  .chevron {
-    width: 100%;
+  .back {
     height: 100%;
-    background: linear-gradient(135deg, #eceddc 25%, transparent 25%) -50px 0,
-      linear-gradient(225deg, #eceddc 25%, transparent 25%) -50px 0,
-      linear-gradient(315deg, #eceddc 25%, transparent 25%),
-      linear-gradient(45deg, #eceddc 25%, transparent 25%);
-    background-size: 100px 100px;
-    background-color: #ec173a;
+    background-color: #eceddc;
+    border: 4px solid #eceddc;
+    border-radius: 2px;
   }
+
   .canBeTapped {
     border: 2px solid orange;
   }

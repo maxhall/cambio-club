@@ -15,25 +15,60 @@
     // Then immediately set it counting down to zero
     barWidth.set(0, { duration: countdown?.remainingTime });
   }
+  $: statusClass = getStatusClass(countdown);
+
+  /** @param countdown {Countdown | undefined} */
+  function getStatusClass(countdown) {
+    if (!countdown) return 'inactive';
+    
+    if (countdown.type === 'viewing') return 'viewing';
+
+    return 'snap';
+  }
 </script>
 
-<div class="wrapper">
+<div class="wrapper {statusClass}">
     <div
       class="bar"
-      style="width: {$barWidth}%; background-color: {countdown &&  countdown.type ===
-      'viewing'
-        ? 'hsl(210, 100%, 50%)'
-        : 'hsl(16, 100%, 50%)'}"
+      style="width: {$barWidth}%;"
     />
 </div>
 
 <style>
   .wrapper {
     width: 100%;
-    height: 20px;
+    height: 15px;
+    border-style: solid;
+    border-width: 2px 2px 0 2px;
+    border-radius: 0.25rem 0.25rem 0 0;
+    /* box-shadow: inset 0 0 5px black; */
   }
-
+  
   .bar {
     height: 100%;
+    border-radius: 0.2rem 0 0 0;
+  }
+  
+  .inactive {
+    background-color: hsl(210, 10%, 70%);
+    border-color: hsl(210, 10%, 100%);
+  }
+
+  .viewing {
+    background-color: hsl(210, 100%, 70%);
+    border-color: hsl(210, 100%, 95%);
+  }
+
+  .viewing div {
+    background-color: hsl(210, 100%, 50%);
+  }
+
+  .snap {
+    background-color: hsl(16, 100%, 70%);
+    border-color: hsl(16, 100%, 95%);
+  }
+
+  .snap div {
+    background-color: hsl(16, 100%, 50%);
   }
 </style>

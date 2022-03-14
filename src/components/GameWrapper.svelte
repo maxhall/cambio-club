@@ -133,6 +133,7 @@
           {/if}
         </form>
       {:else if status === "waitingForReady"}
+        <h1>Game {gameId}</h1>
         <ol>
           {#each state.players as player}
             <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>

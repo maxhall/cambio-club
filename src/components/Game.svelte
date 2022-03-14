@@ -25,7 +25,8 @@
     "awaitingQueenLookChoice",
     "awaitingQueenSwapOwnChoice",
   ];
-  const actionButtonTranstionParameters = {
+
+  const actionButtonTransitionParameters = {
     y: 50,
     duration: 250,
   };
@@ -35,6 +36,7 @@
   $: if (state.events.length > 0) processEvents(state.events);
   $: if (state.state === "settingUp") hasRequestedRematch = false;
   $: showEndTurnButton = isEndTurnButtonVisible(state);
+  $: showCountdownBar = isCountingDown(state);
 
   /** @param state {import('../types').ClientState} */
   function isEndTurnButtonVisible(state) {
@@ -57,6 +59,11 @@
 
     return false;
   }
+  
+  /** @param state {import('../types').ClientState} */
+  function isCountingDown(state) {
+    return (state.countdown) ? true : false;
+  };
 
   async function handleLeave() {
     console.log("Leaving");
@@ -139,11 +146,11 @@
 
 <div style="height: 100%;">
   <header>
+    <button class="lowkey-button" on:click={() => (showRulesModal = true)}>Rules</button>
+    <p class="game-id">Game {state.gameId}</p>
     <button class="lowkey-button" on:click={() => (showLeaveModal = true)}
       >Leave</button
     >
-    <p class="game-id">Game {state.gameId}</p>
-    <button on:click={() => (showRulesModal = true)}>Rules</button>
   </header>
   <Table
     cards={state.cards}
@@ -153,23 +160,24 @@
     {socket}
     gameId={state.gameId}
   />
-  <footer>
+  <div class="event-text-wrapper">
     {#if eventText}
       <p
         class="event-text"
-        in:fly={{ y: 10, duration: 500 }}
-        out:fly={{ y: 10, duration: 1000 }}
+        in:fly={{ y: 10, duration: 100 }}
+        out:fly={{ y: -20, duration: 1500 }}
       >
         {eventText}
       </p>
     {/if}
-    <CountdownBar countdown={state.countdown} />
-    <section class="actions-wrapper">
-      <div class="actions-inner">
+  </div>
+  <footer class:counting-down={showCountdownBar}>
+    <section class="controls">
+      <div class="actions">
         <div class="slot-1">
           {#if isMyTurn && state.state === "startingTurn"}
             <button
-              transition:fly={actionButtonTranstionParameters}
+              transition:fly={actionButtonTransitionParameters}
               class="actions-button"
               on:click={handleCambio}>Cambio</button
             >
@@ -178,14 +186,14 @@
         <div class="slot-2">
           {#if state.canBeSnapped}
             <button
-              transition:fly={actionButtonTranstionParameters}
+              transition:fly={actionButtonTransitionParameters}
               class="actions-button"
               on:click={handleSnap}>Snap</button
             >
           {/if}
           {#if state.state === "gameOver" && !hasRequestedRematch}
             <button
-              transition:fly={actionButtonTranstionParameters}
+              transition:fly={actionButtonTransitionParameters}
               class="actions-button"
               on:click={handleRematch}>Play again</button
             >
@@ -194,20 +202,21 @@
         <div class="slot-3">
           {#if isMyTurn && state.state === "startingTurn"}
             <button
-              transition:fly={actionButtonTranstionParameters}
+              transition:fly={actionButtonTransitionParameters}
               class="actions-button"
               on:click={handlePass}>Pass</button
             >
           {/if}
           {#if isMyTurn && showEndTurnButton}
             <button
-              transition:fly={actionButtonTranstionParameters}
+              transition:fly={actionButtonTransitionParameters}
               class="actions-button"
               on:click={handlePass}>End turn</button
             >
           {/if}
         </div>
       </div>
+      <CountdownBar countdown={state.countdown} />
     </section>
   </footer>
 </div>
@@ -238,34 +247,75 @@
     z-index: 100;
   }
 
+  .game-id {
+    font-weight: 800;
+    color: white;
+    margin: 0.5em 0 0;
+    font-size: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
   footer {
     position: fixed;
     bottom: 0;
     width: 100%;
+    transform: translateY(15px);
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .counting-down {
+    transform: translateY(0px);
+  }
+
+  .event-text-wrapper {
+    position: fixed;
+    bottom: 70px;
+    width: 100%;
   }
 
   .event-text {
-    font-size: 35px;
+    font-size: 18px;
     text-align: center;
-    text-transform: uppercase;
-    line-height: 40px;
+    line-height: 1.3;
+    background-color: white;
+    color: orange;
     margin: 0 auto;
   }
 
-  .actions-wrapper {
-    height: 2rem;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+  .controls {
+    max-width: 14.5rem;
+    margin: 0 auto;
   }
 
-  .actions-inner {
+  .actions {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
+    margin: 0 0.5rem 0;
   }
 
   .actions-button {
-    height: 100%;
-    width: 4rem;
+    margin: 0.125rem 0.125rem 0 0.125rem;
+    height: calc(100% - 0.125rem);
+    width: calc(100% - 0.25rem);
+    font-family: Rubik, sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    font-weight: 800;
+    border-width: 2px 2px 0px 2px;
+    border-color: white;
+    color: white;
+    background-color: rgb(62, 91, 116);
+    border-radius: 0.25rem 0.25rem 0 0;
+  }
+
+  .lowkey-button {
+    color: white;
+    background: none;
+    border: none;
+    padding: 0.5em 0 0;
+    margin: 0 0.5em;
+    line-height: 1;
+    border-bottom: 4px solid white;
   }
 </style>
