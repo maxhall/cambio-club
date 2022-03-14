@@ -211,7 +211,7 @@
             <button
               transition:fly={actionButtonTransitionParameters}
               class="actions-button"
-              on:click={handlePass}>End turn</button
+              on:click={handlePass}>Pass</button
             >
           {/if}
         </div>
@@ -278,13 +278,15 @@
     font-size: 18px;
     text-align: center;
     line-height: 1.3;
-    background-color: white;
-    color: orange;
+    background-color: var(--white);
+    color: var(--game-bg);
+    padding: 0.25rem;
+    max-width: var(--controls-width);
     margin: 0 auto;
   }
 
   .controls {
-    max-width: 14.5rem;
+    max-width: var(--controls-width);
     margin: 0 auto;
   }
 
@@ -303,19 +305,40 @@
     letter-spacing: 1px;
     font-weight: 800;
     border-width: 2px 2px 0px 2px;
-    border-color: white;
-    color: white;
-    background-color: rgb(62, 91, 116);
+    border-color: var(--white);
+    color: var(--game-bg);
+    background-color: var(--white);
     border-radius: 0.25rem 0.25rem 0 0;
   }
 
+  .actions-button:hover {
+    transform: scale(1.05);
+    background-color: var(--game-bg-lightest);
+  }
+
+  .actions-button:active {
+    background-color: var(--game-bg-light);
+  }
+
   .lowkey-button {
-    color: white;
+    color: var(--white);
     background: none;
     border: none;
     padding: 0.5em 0 0;
     margin: 0 0.5em;
     line-height: 1;
-    border-bottom: 4px solid white;
+    border-bottom: 4px solid var(--white);
+  }
+
+  .lowkey-button:hover {
+    border-color: var(--game-bg-lightest);
+    color: var(--game-bg-lightest);
+    outline: none;
+  }
+
+  .lowkey-button:active,
+  .lowkey-button:focus {
+    border-color: var(--game-bg-light);
+    outline: none;
   }
 </style>

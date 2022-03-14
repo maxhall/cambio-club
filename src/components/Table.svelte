@@ -42,7 +42,7 @@
     players.length,
     playerLabelMargin
   ));
-  $: playerLabelOffset = offsetFromCentre - 25;
+  $: playerLabelOffset = offsetFromCentre - 32;
   $: cardsWithTransforms = addTransformsToCards(
     cards,
     players.length,
@@ -154,11 +154,10 @@
    * @param {number} position
    */
   function correctNameOrientation(position) {
-    // TODO: Check this is correct
     const positionRotation =
       (1 / players.length) * (position - localTablePositionOffset);
-    if (positionRotation > 0.25 && positionRotation < 0.75) return true;
-    return false;
+    if (Math.abs(positionRotation) > 0.25 && Math.abs(positionRotation) < 0.75) return '0.5';
+    return '0';
   }
 </script>
 
@@ -188,11 +187,7 @@
                 localTablePositionOffset)}turn); font-size: {playerLabelSize}px;"
           >
             <div
-              style="transform: translateY({playerLabelOffset}px) {correctNameOrientation(
-                player.tablePosition
-              )
-                ? 'rotate(0.5turn)'
-                : ''};"
+              style="transform: translateY({playerLabelOffset}px) rotate({correctNameOrientation(player.tablePosition)}turn);"
             >
               <p
                 class="label"
@@ -214,7 +209,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color: #212f59;
+    background-color: var(--game-bg);
   }
 
   .card-area {
@@ -226,12 +221,11 @@
   }
 
   .label {
-    font-weight: bold;
     color: white;
   }
 
   .current-player {
-    text-decoration: underline solid red 2px;
+    text-decoration: underline solid var(--snap-orange) 2px;
   }
 
   :global(.card-area div) {

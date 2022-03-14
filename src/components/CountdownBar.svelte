@@ -50,25 +50,25 @@
   }
   
   .inactive {
-    background-color: hsl(210, 10%, 70%);
-    border-color: hsl(210, 10%, 100%);
+    background-color: var(--game-bg);
+    border-color: var(--white);
   }
 
   .viewing {
-    background-color: hsl(210, 100%, 70%);
-    border-color: hsl(210, 100%, 95%);
+    background-color: var(--viewing-blue-light);
+    border-color: var(--viewing-blue);
   }
 
   .viewing div {
-    background-color: hsl(210, 100%, 50%);
+    background-color: var(--viewing-blue);
   }
 
   .snap {
-    background-color: hsl(16, 100%, 70%);
-    border-color: hsl(16, 100%, 95%);
+    background-color: var(--snap-orange-light);
+    border-color: var(--snap-orange);
   }
 
   .snap div {
-    background-color: hsl(16, 100%, 50%);
+    background-color: var(--snap-orange);
   }
 </style>

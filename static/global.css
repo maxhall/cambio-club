@@ -1,3 +1,19 @@
+:root {
+	--game-bg: hsl(225, 46%, 24%);
+	--game-bg-light: hsl(225, 46%, 75%);
+	--game-bg-lightest: hsl(225, 46%, 90%);
+	--white: hsl(210, 10%, 100%);
+	--cream: hsl(64, 32%, 90%);
+	--selected-yellow: rgba(255, 208, 0, 0.8);
+	--snap-orange: hsl(16, 100%, 50%);
+	--snap-orange-light: hsl(16, 100%, 70%);
+	--snap-orange-lightest: hsl(16, 100%, 95%);
+	--viewing-blue: hsl(210, 100%, 50%);
+	--viewing-blue-light: hsl(210, 100%, 70%);
+	--viewing-blue-lightest: hsl(210, 100%, 95%);
+	--controls-width: 14.5rem;
+}
+
 @font-face {
 	font-family: Rubik;
 	src: url('Rubik-Regular.woff2') format('woff2');

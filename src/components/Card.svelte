@@ -72,7 +72,7 @@
 <style>
   .card {
     box-sizing: border-box;
-    background-color: white;
+    background-color: var(--white);
     border-radius: 2px;
     z-index: 1000;
     display: flex;
@@ -82,13 +82,13 @@
 
   .back {
     height: 100%;
-    background-color: #eceddc;
-    border: 4px solid #eceddc;
+    background-color: var(--cream);
+    border: 4px solid var(--cream);
     border-radius: 2px;
   }
 
   .canBeTapped {
-    border: 2px solid orange;
+    border: 2px solid var(--snap-orange);
   }
 
   @keyframes selected-shadow {
@@ -96,10 +96,10 @@
       box-shadow: none;
     }
     33% {
-      box-shadow: 0px 0px 3px 3px rgba(255, 208, 0, 0.8);
+      box-shadow: 0px 0px 3px 3px var(--selected-yellow);
     }
     66% {
-      box-shadow: 0px 0px 3px 3px rgba(255, 208, 0, 0.8);
+      box-shadow: 0px 0px 3px 3px var(--selected-yellow);
     }
     100% {
       box-shadow: none;
