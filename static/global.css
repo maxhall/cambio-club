@@ -60,10 +60,12 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
 	font-size: 2rem;
+	font-weight: 800;
+	color: var(--game-bg);
 }
 
 h2 {
-    border-bottom: 6px solid hsl(40deg, 50%, 90%);
+    border-bottom: 6px solid var(--off-white);
     display: inline-block;
     line-height: 0.68;
   }
@@ -80,13 +82,43 @@ a {
     fill: red;
 }
 
-button {
+button,
+input {
+	font-family: Rubik;
 	font-size: 20px;
 	line-height: 1;
 	padding: 0.5rem;
-	border-radius: none;
-	background-color: white;
-	border: 1.5px solid black;
+	border-radius: 0.25rem;
+	background-color: var(--white);
+	color: var(--game-bg);
+	border: 2px solid var(--game-bg);
+}
+
+input {
+	font-weight: 800;
+	letter-spacing: 1px;
+}
+
+button:hover,
+input:hover {
+	background-color: var(--game-bg-lightest);
+}
+
+button:active,
+button:focus,
+input:active,
+input:focus {
+	background-color: var(--game-bg-light);
+	outline-style: dashed;
+	outline-width: 2px;
+	outline-color: var(--game-bg);
+	outline-offset: 2px;
+}
+
+label {
+	display: block;
+	font-size: 16px;
+	margin: 0 0 0.5rem;
 }
 
 .pane-wrapper {

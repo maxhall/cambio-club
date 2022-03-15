@@ -119,14 +119,13 @@
         <p>Loading...</p>
       {:else if status === "creatingName"}
         <form on:submit|preventDefault={handleNameChoice}>
-          <label for="choose-name"
-            >Choose a name:<input
-              type="text"
-              bind:value={name}
-              name="choose-name"
-              id="choose-name"
-            /></label
-          >
+          <label for="choose-name">Choose a name:</label>
+          <input
+            type="text"
+            bind:value={name}
+            name="choose-name"
+            id="choose-name"
+          />
           <button on:click={handleNameChoice}>Submit</button>
           {#if nameError}
             <p>{nameError}</p>

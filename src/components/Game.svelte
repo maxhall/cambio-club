@@ -324,6 +324,7 @@
     color: var(--white);
     background: none;
     border: none;
+    border-radius: 0px;
     padding: 0.5em 0 0;
     margin: 0 0.5em;
     line-height: 1;
