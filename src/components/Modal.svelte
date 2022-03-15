@@ -23,29 +23,24 @@
 <div class="modal">
   <div class="inner" use:clickOutside on:outclick={() => dispatch("close")}>
     <div class="button-bar">
-        <button class="exit" on:click={() => dispatch("close")}>
-          <svg viewBox="0 0 100 100">
-            <circle class="exit-bg" r="80" cx="50" cy="50" />
-            <rect
-              class="exit-cross"
-              width="10"
-              height="100"
-              transform="translate(45 0) rotate(45 5 50)"
+      <button class="exit" on:click={() => dispatch("close")}>
+        <svg viewBox="0 0 100 100">
+          <rect
+            class="exit-cross"
+            width="10"
+            height="100"
+            rx="5"
+            transform="translate(45 0) rotate(45 5 50)"
             />
             <rect
-              class="exit-cross"
-              width="10"
-              height="100"
-              transform="translate(45 0) rotate(45 5 50)"
-            />
-            <rect
-              class="exit-cross"
-              width="10"
-              height="100"
-              transform="translate(45 0) rotate(-45 5 50)"
-            />
-          </svg>
-        </button>
+            class="exit-cross"
+            width="10"
+            height="100"
+            rx="5"
+            transform="translate(45 0) rotate(-45 5 50)"
+          />
+        </svg>
+      </button>
     </div>
     <div class="content">
       <slot />
@@ -79,38 +74,20 @@
   }
 
   .button-bar {
-      display: flex;
-      flex-direction: row;
-      justify-content: end;
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
   }
 
   .exit {
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1rem;
+    height: 1rem;
     padding: 0 0 0.5rem;
     display: block;
-    background: none;
-    border: 2px solid black;
+    margin-bottom: 0.25rem;
   }
 
-  .exit > svg {
-    display: block;
-  }
-
-  .exit-bg {
-    fill: white;
-  }
-
-  .exit:hover .exit-bg {
-    fill: black;
-  }
-
-  .exit:hover .exit-cross {
-    fill: white;
-  }
-
-  .exit:active,
-  .exit:focus {
-    border: 2px solid white;
+  svg {
+    fill: var(--game-bg);
   }
 </style>

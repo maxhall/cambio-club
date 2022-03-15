@@ -110,16 +110,17 @@
 {#if status === "playing"}
   <Game bind:this={gameComponent} {state} {socket} />
 {:else}
-  <div class="pane-wrapper">
-    <div class="pane">
-      {#if status === "error"}
-        <h1>{errorMessage}</h1>
-        <NewGameForm />
-      {:else if status === "starting"}
-        <p>Loading...</p>
-      {:else if status === "creatingName"}
-        <form on:submit|preventDefault={handleNameChoice}>
-          <label for="choose-name">Choose a name:</label>
+  <div class="pane">
+    {#if status === "error"}
+      <h1>{errorMessage}</h1>
+      <NewGameForm />
+    {:else if status === "starting"}
+      <p>Loading...</p>
+    {:else if status === "creatingName"}
+      <h1>Game {gameId}</h1>
+      <form on:submit|preventDefault={handleNameChoice}>
+        <label for="choose-name">Choose a name:</label>
+        <div class="input-pair">
           <input
             type="text"
             bind:value={name}
@@ -127,25 +128,25 @@
             id="choose-name"
           />
           <button on:click={handleNameChoice}>Submit</button>
-          {#if nameError}
-            <p>{nameError}</p>
-          {/if}
-        </form>
-      {:else if status === "waitingForReady"}
-        <h1>Game {gameId}</h1>
-        <ol>
-          {#each state.players as player}
-            <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
-          {/each}
-        </ol>
-        {#if !hasIndicatedReady}
-          <button on:click={handleReady}>I'm ready to play</button>
+        </div>
+        {#if nameError}
+          <p>{nameError}</p>
         {/if}
-      {:else if status === "exit"}
-        <h1>Game over</h1>
-        <p>Another player exited the game</p>
-        <NewGameForm />
+      </form>
+    {:else if status === "waitingForReady"}
+      <h1>Game {gameId}</h1>
+      <ol>
+        {#each state.players as player}
+          <li>{player.name} is {player.ready ? "ready" : "not ready"}</li>
+        {/each}
+      </ol>
+      {#if !hasIndicatedReady}
+        <button on:click={handleReady}>I'm ready to play</button>
       {/if}
-    </div>
+    {:else if status === "exit"}
+      <h1>Game over</h1>
+      <p>Another player exited the game</p>
+      <NewGameForm />
+    {/if}
   </div>
 {/if}

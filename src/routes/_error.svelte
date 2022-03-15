@@ -1,4 +1,5 @@
 <script>
+  import NewGameForm from "../components/NewGameForm.svelte";
   /** @type {number} */
   export let status;
   /** @type {Error} */
@@ -11,10 +12,14 @@
   <title>{status}</title>
 </svelte:head>
 
-<h1>{status}</h1>
-
-<p>{error.message}</p>
-
-{#if dev && error.stack}
-  <pre>{error.stack}</pre>
-{/if}
+<div class="pane">
+  <h1>{status}</h1>
+  
+  <p>{error.message}</p>
+  
+  <NewGameForm />
+  
+  {#if dev && error.stack}
+    <pre>{error.stack}</pre>
+  {/if}
+</div>

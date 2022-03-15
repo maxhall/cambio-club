@@ -86,6 +86,8 @@
 
   .options {
     margin: 0 0 1rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--game-bg);
   }
 
   input {

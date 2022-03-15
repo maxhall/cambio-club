@@ -12,8 +12,9 @@
   <title>Cambio Club</title>
 </svelte:head>
 
-<main>
+<main class="pane">
   <h1>Cambio Club</h1>
+  <p>An online multi-player card game</p>
   <section>
     <NewGameForm />
   </section>
@@ -30,12 +31,7 @@
 {/if}
 
 <style>
-  main {
-    max-width: 30em;
-    margin: 0 auto 0;
-  }
-
   section {
-    margin: 0 0 4rem;
+    margin: 0 0 3rem;
   }
 </style>
