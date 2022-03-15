@@ -4,6 +4,7 @@
   import { onMount } from "svelte";
   import NewGameForm from "./NewGameForm.svelte";
   import Game from "./Game.svelte";
+  import LinkShare from "./LinkShare.svelte";
 
   /** @type {string} */
   export let gameId;
@@ -141,8 +142,9 @@
         {/each}
       </ol>
       {#if !hasIndicatedReady}
-        <button on:click={handleReady}>I'm ready to play</button>
+        <button class="ready-button" on:click={handleReady}>I'm ready to play</button>
       {/if}
+      <LinkShare {gameId} />
     {:else if status === "exit"}
       <h1>Game over</h1>
       <p>Another player exited the game</p>
@@ -150,3 +152,9 @@
     {/if}
   </div>
 {/if}
+
+<style>
+  .ready-button {
+    margin-bottom: 2rem;
+  }
+</style>
