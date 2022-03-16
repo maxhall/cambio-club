@@ -96,8 +96,16 @@ type FlatPlayerData = PlayerData & { sessionId: string };
 type Event = {
     id?: number,
     recipientSessionIds?: string[],
+} & (GraphicEvent | TextEvent);
+
+type GraphicEvent = {
+    type: 'graphic',
+    name: 'cambio' | 'mateLook' | 'mineLook' | 'penalty' | 'queensGambit' | 'win' | 'snap'
+}
+
+type TextEvent = {
     type: 'text',
-    message: string,
+    message: string
 }
 
 export type Events = Event[];
