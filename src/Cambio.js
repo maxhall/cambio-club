@@ -713,6 +713,19 @@ export default class Cambio {
     });
   }
 
+  /** @returns {string[]} sessionIds */
+  getPlayerSessionIds() {
+    const playerArray = [];
+    for (const key of this.players.keys()) {
+      playerArray.push(key);
+    }
+    return playerArray;
+  }
+
+  getState() {
+    return this.state;
+  }
+
   /**
    * @param {string} sessionId
    * @param {Update} update
