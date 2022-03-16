@@ -94,6 +94,7 @@ export type PlayerData = {
 type FlatPlayerData = PlayerData & { sessionId: string };
 
 type Event = {
+    id?: number,
     recipientSessionIds?: string[],
     type: 'text',
     message: string,

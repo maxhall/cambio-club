@@ -4,21 +4,16 @@
   import CountdownBar from "./CountdownBar.svelte";
   import Modal from "./Modal.svelte";
   import Rules from "./Rules.svelte";
+  import TextEvents from "./TextEvents.svelte";
+
   /** @type {import('../types').ClientState} */
   export let state;
   /** @type {import('socket.io-client').Socket} */
   export let socket;
-  /** @type {import('../types').Events} */
-  let textEvents = [];
-  let graphicEvents = [];
-  let eventText = "";
-  /** @type {NodeJS.Timeout | undefined} */
-  let eventTextQueueTimer;
   let hasRequestedRematch = false;
   let showRulesModal = false;
   let showLeaveModal = false;
 
-  const eventTextTimeout = 3000;
   const statesAllowingEndTurn = [
     "awaitingMateLookChoice",
     "awaitingMineLookChoice",
@@ -32,8 +27,6 @@
   };
 
   $: isMyTurn = state.sessionId === state.currentTurnSessionId;
-  // If events get funky, find a non-reactive approach to this
-  $: if (state.events.length > 0) processEvents(state.events);
   $: if (state.state === "settingUp") hasRequestedRematch = false;
   $: showEndTurnButton = isEndTurnButtonVisible(state);
   $: showCountdownBar = isCountingDown(state);
@@ -113,33 +106,6 @@
   function sendUpdate(update) {
     socket.emit("update", update);
   }
-
-  /** @param {import('../types').Events} newEvents */
-  function processEvents(newEvents) {
-    newEvents.forEach((event) => {
-      if (event.type === "text") {
-        textEvents.push(event);
-      }
-      graphicEvents.push(event);
-    });
-
-    runTextEventQueue();
-  }
-
-  function runTextEventQueue() {
-    if (eventTextQueueTimer) {
-      return;
-    }
-    const event = textEvents.shift();
-    if (event) {
-      eventText = event.message;
-      eventTextQueueTimer = setTimeout(() => {
-        eventTextQueueTimer = undefined;
-        eventText = "";
-        runTextEventQueue();
-      }, eventTextTimeout);
-    }
-  }
 </script>
 
 <svelte:window on:keydown={(event) => handleKeydown(event)} />
@@ -160,17 +126,7 @@
     {socket}
     gameId={state.gameId}
   />
-  <div class="event-text-wrapper">
-    {#if eventText}
-      <p
-        class="event-text"
-        in:fly={{ y: 10, duration: 100 }}
-        out:fly={{ y: -20, duration: 1500 }}
-      >
-        {eventText}
-      </p>
-    {/if}
-  </div>
+  <TextEvents events={state.events} />
   <footer class:counting-down={showCountdownBar}>
     <section class="controls">
       <div class="actions">
@@ -266,23 +222,6 @@
 
   .counting-down {
     transform: translateY(0px);
-  }
-
-  .event-text-wrapper {
-    position: fixed;
-    bottom: 70px;
-    width: 100%;
-  }
-
-  .event-text {
-    font-size: 18px;
-    text-align: center;
-    line-height: 1.3;
-    background-color: var(--white);
-    color: var(--game-bg);
-    padding: 0.25rem;
-    max-width: var(--controls-width);
-    margin: 0 auto;
   }
 
   .controls {
