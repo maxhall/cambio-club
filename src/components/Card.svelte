@@ -88,25 +88,27 @@
   }
 
   .canBeTapped {
-    border: 2px solid var(--snap-orange);
+    border: 1px solid orange;
+    animation: can-be-tapped-shadow ease-in-out 2s infinite;
   }
 
-  @keyframes selected-shadow {
+  @keyframes can-be-tapped-shadow {
     0% {
       box-shadow: none;
     }
     33% {
-      box-shadow: 0px 0px 3px 3px var(--selected-yellow);
+      box-shadow: 0px 0px 2px 2px orange;
     }
     66% {
-      box-shadow: 0px 0px 3px 3px var(--selected-yellow);
+      box-shadow: 0px 0px 2px 2px orange;
     }
     100% {
       box-shadow: none;
     }
   }
-
+  
   .selected {
-    animation: selected-shadow ease-in-out 1.5s infinite;
+    border: 1px solid var(--viewing-blue-light);
+    box-shadow: 0px 0px 2px 2px var(--viewing-blue-light);
   }
 </style>
