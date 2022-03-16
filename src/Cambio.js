@@ -10,7 +10,7 @@ import { Timer, shuffledDeck, shuffle } from "./utils";
 /** @typedef {import('./types').State} State */
 /** @typedef {import('./types').Update} Update */
 
-const INITIAL_VIEWING_INTRO_PAUSE = 3 * 1000;
+const INITIAL_VIEWING_INTRO_PAUSE = 0 * 1000;
 const INITIAL_VIEWING_TIME = 10 * 1000;
 const SNAP_SUSPENSION_TIME = 5 * 1000;
 const LOOK_TIME = 10 * 1000;
@@ -1002,7 +1002,7 @@ export default class Cambio {
             recipientSessionIds: [this.currentTurnSessionId],
           });
         }
-  
+
         this.state = "startingTurn";
         this.setCanBeTapped(this.state);
         resolve(this.sendStateToAll());
@@ -1225,6 +1225,7 @@ export default class Cambio {
         this.events.push({
           type: "text",
           message: `Choose a card to give to ${snappedOnName}`,
+          recipientSessionIds: [this.playerWhoSnapped],
         });
         // TODO: Should this be done in `setCanBeTapped`? Or such an edge case it can stay here
         // mark all the snapping player's cards as canBeTapped

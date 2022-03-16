@@ -17,8 +17,6 @@
 
   /** @param {import('../types').Events} newEvents */
   function processEvents(newEvents) {
-    console.log("Processing events");
-
     newEvents.forEach((event) => {
       if (event.type === "text") queue.push(event);
     });
