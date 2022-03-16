@@ -70,9 +70,6 @@ h1 {
 }
 
 h2 {
-  border-bottom: 6px solid var(--off-white);
-  display: inline-block;
-  line-height: 0.68;
   margin: 0 0 1rem 0;
 }
 
@@ -156,4 +153,20 @@ label {
   padding: 1rem;
   max-width: 20rem;
   margin: 0 auto;
+}
+
+.danger {
+  color: var(--snap-orange);
+  border-color: var(--snap-orange);
+  margin: 0.25rem;
+}
+
+.danger:hover {
+  background-color: var(--snap-orange-lightest);
+}
+
+.danger:active,
+.danger:focus {
+  background-color: var(--snap-orange-light);
+  outline-color: var(--snap-orange-light);
 }

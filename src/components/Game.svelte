@@ -185,7 +185,7 @@
   <Modal on:close={() => (showLeaveModal = false)}>
     <h2>Are you sure you want to leave?</h2>
     <p>This will end the game for everyone</p>
-    <button on:click={handleLeave}>Leave</button>
+    <button class="danger" on:click={handleLeave}>Leave</button>
   </Modal>
 {/if}
 
