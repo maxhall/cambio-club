@@ -1,29 +1,74 @@
 <script>
-    /** @type {string} */
-    export let gameId;
+  /** @type {string} */
+  export let gameId;
 
-    const canCopyToClipboard = navigator && navigator.clipboard && navigator.clipboard.writeText;
-    const dev = process.env.NODE_ENV === "development";
-    
-    let buttonText = 'Copy game link'
-    function handleClick() {
-        // TODO: Update to actual production url
-        const gameURL = dev ? `localhost:3000/game/${gameId}` : `https://cambio-club.herokuapp.com/game/${gameId}`;
-        navigator.clipboard.writeText(gameURL);
-        buttonText = 'Copied!';
+  const dev = process.env.NODE_ENV === "development";
+  // TODO: Update to actual production url
+  const gameURL = dev
+    ? `localhost:3000/game/${gameId}`
+    : `https://cambio-club.herokuapp.com/game/${gameId}`;
+  const canCopyToClipboard =
+    navigator && navigator.clipboard && navigator.clipboard.writeText;
+  let canShare = navigator && navigator.canShare && navigator.share;
+
+  let buttonText = canShare ? "Share game link" : "Copy game link";
+
+  function handleCopy() {
+    navigator.clipboard.writeText(gameURL);
+    buttonText = "Copied!";
+    const timer = setTimeout(() => {
+      buttonText = "Copy game link";
+    }, 1500);
+  }
+
+  function handleShare() {
+    navigator
+      .share({
+        title: "Let's play Cambio!",
+        text: "Follow the link to join the game",
+        url: gameURL,
+      })
+      .then(() => {
+        buttonText = "Shared!";
         const timer = setTimeout(() => {
-            buttonText = 'Copy game link';
+          buttonText = "Share game link";
         }, 1500);
-    }
+      })
+      .catch(() => {
+        canShare = false;
+      });
+  }
 </script>
 
-{#if canCopyToClipboard}
-    <button on:click="{handleClick}">{buttonText}</button>
+{#if canShare}
+  <button on:click={handleShare}>{buttonText}</button>
+{:else if canCopyToClipboard}
+  <button on:click={handleCopy}>{buttonText}</button>
+{:else}
+  <p>Game link:</p>
 {/if}
+<div class="link-wrapper">
+  <p>{gameURL}</p>
+</div>
 
 <style>
-    button {
-        display: block;
-        min-width: 7rem;
-    }
+  button {
+    display: block;
+    min-width: 7rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .link-wrapper {
+    background: var(--game-bg-lightest);
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+    overflow-x: scroll;
+  }
+
+  p {
+    opacity: 0.65;
+    font-size: 18px;
+    margin: 0;
+  }
 </style>
