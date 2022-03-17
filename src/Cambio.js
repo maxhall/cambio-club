@@ -75,6 +75,9 @@ export default class Cambio {
     this.playerWhoSnapped;
     /** @type {Card[]} */
     this.positionedCards = [];
+    /** @type {CardPosition | null} */
+    this.previewedCardOriginalPosition = null;
+    this.previewedCardWasSnapped = false;
     /** @type {Card} */
     this.queenOwnChoiceCard;
     /** @type {CardPosition} */
@@ -443,6 +446,7 @@ export default class Cambio {
         return;
       }
 
+      this.previewedCardOriginalPosition = cardPosition;
       this.state = "previewingCard";
       this.setCanBeTapped(this.state);
 
@@ -453,7 +457,12 @@ export default class Cambio {
       };
 
       this.viewingTimer = new Timer(() => {
-        tappedCard.position = cardPosition;
+        if (!this.previewedCardWasSnapped) {
+          tappedCard.position = cardPosition;
+        }
+        this.previewedCardWasSnapped = false;
+        this.previewedCardOriginalPosition = null;
+
         this.viewingTimer = null;
         this.nextTurn();
       }, LOOK_TIME);
@@ -479,6 +488,7 @@ export default class Cambio {
         return;
       }
 
+      this.previewedCardOriginalPosition = cardPosition;
       this.state = "previewingCard";
       this.setCanBeTapped(this.state);
 
@@ -489,7 +499,12 @@ export default class Cambio {
       };
 
       this.viewingTimer = new Timer(() => {
-        tappedCard.position = cardPosition;
+        if (!this.previewedCardWasSnapped) {
+          tappedCard.position = cardPosition;
+        }
+        this.previewedCardWasSnapped = false;
+        this.previewedCardOriginalPosition = null;
+
         this.viewingTimer = null;
         this.nextTurn();
       }, LOOK_TIME);
@@ -565,6 +580,7 @@ export default class Cambio {
         return;
       }
 
+      this.previewedCardOriginalPosition = cardPosition;
       this.state = "previewingCard";
       this.setCanBeTapped(this.state);
 
@@ -575,7 +591,12 @@ export default class Cambio {
       };
 
       this.viewingTimer = new Timer(() => {
-        tappedCard.position = cardPosition;
+        if (!this.previewedCardWasSnapped) {
+          tappedCard.position = cardPosition;
+        }
+        this.previewedCardWasSnapped = false;
+        this.previewedCardOriginalPosition = null;
+
         this.viewingTimer = null;
         this.state = "awaitingQueenSwapOwnChoice";
         this.setCanBeTapped(this.state);
@@ -637,10 +658,21 @@ export default class Cambio {
     const firstAvailableTableSlot = new Array(TABLE_CARD_SLOTS)
       .fill(null)
       .findIndex((_, i) => {
-        const cardInTableSlot = tableCards.find(
+        let cardInTableSlot = tableCards.some(
           (card) =>
             card.position.area === "table" && card.position.tableSlot === i
         );
+        // Needed to prevent dropping a penalty card into a gap that
+        // is home to a card being previewed
+        if (
+          this.stateBeforeSnapSuspension === "previewingCard" &&
+          this.previewedCardOriginalPosition &&
+          this.previewedCardOriginalPosition.area == "table" &&
+          this.previewedCardOriginalPosition.tableSlot === i &&
+          this.previewedCardOriginalPosition.player === playerTablePosition
+        ) {
+          cardInTableSlot = true;
+        }
         return !cardInTableSlot;
       });
     return firstAvailableTableSlot;
@@ -859,6 +891,13 @@ export default class Cambio {
           if (allRequestedRematch) {
             resolve(this.rematch());
           } else {
+            this.events.push({
+              type: "text",
+              message: `${rematchPlayerData?.name} wants a rematch`,
+              recipientSessionIds: [...this.players.keys()].filter(
+                (id) => id !== sessionId
+              ),
+            });
             resolve(this.sendStateToAll());
           }
           break;
@@ -1128,10 +1167,25 @@ export default class Cambio {
       const snappingPlayerTablePosition = /** @type {number} */ (
         this.players.get(sessionId)?.tablePosition
       );
-      const isAnotherPlayerCard =
+
+      this.previewedCardWasSnapped =
+        snappedCardPosition.area === "viewing" &&
+        snappedCardPosition.player === snappingPlayerTablePosition;
+
+      let isAnotherPlayerCard =
         (snappedCardPosition.area === "viewing" ||
           snappedCardPosition.area === "table") &&
         snappedCardPosition.player !== snappingPlayerTablePosition;
+
+      // If the snapped card was being previewed, assess whose it is
+      // based on its position before previewing began
+      if (this.previewedCardWasSnapped) {
+        isAnotherPlayerCard =
+          (this.previewedCardOriginalPosition?.area === "table" ||
+            this.previewedCardOriginalPosition?.area === "viewing") &&
+          this.previewedCardOriginalPosition.player !==
+            snappingPlayerTablePosition;
+      }
 
       if (isValidSnap) {
         // If the snap is valid: Award the snap by moving the snappedCard to the pile.
@@ -1157,13 +1211,24 @@ export default class Cambio {
         });
         this.events.push({
           type: "text",
+          message: `You get ${isAnotherPlayerCard ? "it & " : ""}a penalty`,
+          recipientSessionIds: [sessionId],
+        });
+        this.events.push({
+          type: "text",
           message: `They get ${isAnotherPlayerCard ? "it & " : ""}a penalty`,
+          recipientSessionIds: [...this.players.keys()].filter(
+            (id) => id !== sessionId
+          ),
         });
       }
 
       if (isValidSnap && isAnotherPlayerCard) {
         this.state = "awaitingSnapResolutionChoice";
-        this.savedSnappedCardPosition = snappedCardPosition;
+        this.savedSnappedCardPosition =
+          this.previewedCardWasSnapped && this.previewedCardOriginalPosition
+            ? this.previewedCardOriginalPosition
+            : snappedCardPosition;
         const snappedOnName = [...this.players.values()].find(
           (p) => p.tablePosition === snappedCardPosition.player
         )?.name;
@@ -1190,6 +1255,20 @@ export default class Cambio {
             c.position.area === "table" &&
             c.position.player === snappingPlayerTablePosition
         );
+
+        if (
+          snappingPlayersTableCards.length >= TABLE_CARD_SLOTS &&
+          this.previewedCardWasSnapped
+        ) {
+          // If we're here, you previewed another players card, incorrectly
+          // snapped it, took a penalty that filled up your table area
+          // so we now move the snapped card to the hidden pile so it doesn't linger
+          this.hiddenPile.unshift(cardAtSnapPosition);
+          this.positionedCards = this.positionedCards.filter(
+            (card) => !isEqual(card.position, snappedCardPosition)
+          );
+        }
+
         if (snappingPlayersTableCards.length < TABLE_CARD_SLOTS) {
           cardAtSnapPosition.position = {
             area: "table",
@@ -1198,6 +1277,36 @@ export default class Cambio {
               snappingPlayerTablePosition
             ),
           };
+        }
+      } else if (!isValidSnap) {
+        // This captures invalid snap while previewing one of your own cards
+        const snappingPlayersTableCards = this.positionedCards.filter(
+          (c) =>
+            c.position.area === "table" &&
+            c.position.player === snappingPlayerTablePosition
+        );
+
+        // The check for how many cards the snapping player has needs to add one
+        // where an empty slot is usually occupied by the card you're previewing
+        const snappingPlayersRealTableCardCount = this.previewedCardWasSnapped
+          ? snappingPlayersTableCards.length + 1
+          : snappingPlayersTableCards.length;
+        if (snappingPlayersRealTableCardCount <= TABLE_CARD_SLOTS) {
+          cardAtSnapPosition.position = this.previewedCardOriginalPosition || {
+            area: "table",
+            player: snappingPlayerTablePosition,
+            tableSlot: this.getFirstAvailableTableSlot(
+              snappingPlayerTablePosition
+            ),
+          };
+        } else {
+          // If we're here, you previewed one of your own cards, incorrectly
+          // snapped it, took a penalty that overflowed your table (which shouldn't
+          // happen in theory) so we now move the snapped card to the hidden pile
+          this.hiddenPile.unshift(cardAtSnapPosition);
+          this.positionedCards = this.positionedCards.filter(
+            (card) => !isEqual(card.position, snappedCardPosition)
+          );
         }
       }
 
@@ -1478,11 +1587,20 @@ export default class Cambio {
         this.players.get(sessionId)?.tablePosition
       );
       this.positionedCards.forEach((card) => {
-        card.canBeTapped =
+        let canIt =
           (card.position.area === "table" ||
             card.position.area === "viewing") &&
           (this.options.canSnapOtherPlayers ||
             card.position.player === snappingPlayerTablePosition);
+
+        if (
+          card.position.area === "viewing" &&
+          card.position.player !== snappingPlayerTablePosition
+        ) {
+          canIt = false;
+        }
+
+        card.canBeTapped = canIt;
       });
       resolve(this.sendStateToAll());
     });

@@ -30,6 +30,8 @@
   $: if (state.state === "settingUp") hasRequestedRematch = false;
   $: showEndTurnButton = isEndTurnButtonVisible(state);
   $: showCountdownBar = isCountingDown(state);
+  $: isDeckOrPileSwap = state.state === "awaitingDeckSwapChoice" || state.state === "awaitingPileSwapChoice";
+  $: isPlayerForbiddenFromSnapping = isMyTurn && isDeckOrPileSwap;
 
   /** @param state {import('../types').ClientState} */
   function isEndTurnButtonVisible(state) {
@@ -140,7 +142,7 @@
           {/if}
         </div>
         <div class="slot-2">
-          {#if state.canBeSnapped}
+          {#if state.canBeSnapped && !isPlayerForbiddenFromSnapping}
             <button
               transition:fly={actionButtonTransitionParameters}
               class="actions-button"
