@@ -398,6 +398,16 @@ export default class Cambio {
         return;
       }
 
+      if (
+        this.positionedCards.find((c) => c.position.area === "pile")?.rank ===
+        "joker"
+      ) {
+        this.events.push({
+          type: "graphic",
+          name: "joker",
+        });
+      }
+
       this.canBeSnapped = true;
       this.sendStateToAll();
       resolve(this.startSpecialPower());
@@ -426,6 +436,16 @@ export default class Cambio {
         tappedCard.position = {
           area: "pile",
         };
+      }
+
+      if (
+        this.positionedCards.find((c) => c.position.area === "pile")?.rank ===
+        "joker"
+      ) {
+        this.events.push({
+          type: "graphic",
+          name: "joker",
+        });
       }
 
       this.canBeSnapped = true;

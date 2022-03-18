@@ -98,7 +98,7 @@ type Event = {
     recipientSessionIds?: string[],
 } & (GraphicEvent | TextEvent);
 
-type GraphicEventName = 'cambio' | 'mateLook' | 'mineLook' | 'penalty' | 'queensGambit' | 'win' | 'snap'
+type GraphicEventName = 'cambio' | 'mateLook' | 'mineLook' | 'penalty' | 'queensGambit' | 'win' | 'snap' | 'joker'
 
 export type GraphicEvent = {
     type: 'graphic',

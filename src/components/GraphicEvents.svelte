@@ -18,7 +18,27 @@
       "queensGambit4.webp",
       "queensGambit5.webp",
     ],
-    penalty: ["penalty-wasted.webp"],
+    penalty: [
+      "penalty-wasted.webp",
+      "penalty-ref.webp",
+      "penalty-kid.webp",
+    ],
+    mineLook: [
+      "mineLook-SpiderMan.webp",
+      "mineLook-Pup.webp",
+      "mineLook-Portman.webp",
+    ],
+    mateLook: [
+      "mateLook-SideEye.webp",
+      "mateLook-MrBean.webp",
+    ],
+    joker: [
+      "joker-heath.webp",
+    ],
+    win: [
+      "win-fireworks.webp",
+      "win-streamers.webp"
+    ]
   };
 
   /** @type {NodeJS.Timeout | undefined} */
