@@ -7,11 +7,10 @@
   const gameURL = dev
     ? `localhost:3000/game/${gameId}`
     : `https://cambio-club.herokuapp.com/game/${gameId}`;
-  const canCopyToClipboard =
-    navigator && navigator.clipboard && navigator.clipboard.writeText;
-  let canShare = navigator && navigator.canShare && navigator.share;
+  const canCopyToClipboard = (navigator.clipboard && navigator.clipboard.writeText) ? true : false;
+  let canShare = (navigator.share) ? true : false;
 
-  let buttonText = canShare ? "Share game link" : "Copy game link";
+  let buttonText = (canShare) ? "Share game link" : "Copy game link";
 
   function handleCopy() {
     navigator.clipboard.writeText(gameURL);
