@@ -2,6 +2,7 @@
   // @ts-check
   import { io } from "socket.io-client";
   import { onMount } from "svelte";
+  import { slide } from "svelte/transition";
   import NewGameForm from "./NewGameForm.svelte";
   import Game from "./Game.svelte";
   import LinkShare from "./LinkShare.svelte";
@@ -19,7 +20,6 @@
   let nameError;
   /** @type {import('../types').ClientState} */
   let state;
-  let hasIndicatedReady = false;
   /** @type {import('svelte').SvelteComponent}*/
   let gameComponent;
 
@@ -31,7 +31,8 @@
     socket.connect();
   }
 
-  $: if (state && state.state === "settingUp") hasIndicatedReady = false;
+  $: currentPlayer = (state) ? state.players.find(p => p.sessionId == state.sessionId) : null;
+  $: hasIndicatedReady = (currentPlayer) ? currentPlayer.ready : false;
 
   onMount(() => {
     socket.on(
@@ -96,7 +97,6 @@
   }
 
   function handleReady() {
-    hasIndicatedReady = true;
     sendUpdate({
       gameId,
       action: "indicateReady",
@@ -144,7 +144,7 @@
         {/each}
       </ol>
       {#if !hasIndicatedReady}
-        <button class="ready-button" on:click={handleReady}>I'm ready to play</button>
+        <button in:slide class="ready-button danger" on:click={handleReady}>I'm ready to play</button>
       {/if}
       <LinkShare {gameId} />
     {:else if status === "exit"}
