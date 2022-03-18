@@ -8,13 +8,17 @@
   const options = [
     "Allow snapping others' cards",
     "Open hands",
-    "Risky fives: -25 for two, +50 for one"
+    "Risky fives: -25 for two, +50 for one",
   ];
-  
+
   /** @type {import('../types').GameOptions} */
   $: optionsObject = {
-    canSnapOtherPlayers: selectedOptions.includes("Allow snapping others' cards"),
-    riskyFives: selectedOptions.includes("Risky fives: -25 for two, +50 for one"),
+    canSnapOtherPlayers: selectedOptions.includes(
+      "Allow snapping others' cards"
+    ),
+    riskyFives: selectedOptions.includes(
+      "Risky fives: -25 for two, +50 for one"
+    ),
     openHands: selectedOptions.includes("Open hands"),
   };
 
@@ -32,31 +36,36 @@
 </script>
 
 <form>
-  <button class="primary-button" on:click|preventDefault={newGame}>Start new game</button>
-  <button class="toggle" on:click|preventDefault="{() => (showOptions = !showOptions)}">
-    <span><svg class:toggled={showOptions} viewBox="0 0 12 12"><path d="M0 0 0 12 10 6Z"/></svg></span>
+  <button class="primary-button" on:click|preventDefault={newGame}
+    >Start new game</button
+  >
+  <button
+    class="toggle"
+    on:click|preventDefault={() => (showOptions = !showOptions)}
+  >
+    <span
+      ><svg class:toggled={showOptions} viewBox="0 0 12 12"
+        ><path d="M0 0 0 12 10 6Z" /></svg
+      ></span
+    >
     Options
   </button>
   {#if showOptions}
-  <div transition:slide class="options">
-    {#each options as option}
-      <label
-        ><input
-          type="checkbox" 
-          value={option}
-          bind:group={selectedOptions}
-        />{option}</label
-      >
-    {/each}
-  </div>
+    <div transition:slide class="options">
+      {#each options as option}
+        <label
+          ><input
+            type="checkbox"
+            value={option}
+            bind:group={selectedOptions}
+          />{option}</label
+        >
+      {/each}
+    </div>
   {/if}
 </form>
 
 <style>
-  label {
-    display: block;
-  }
-  
   .primary-button {
     margin-bottom: 0.25rem;
   }
@@ -67,7 +76,7 @@
     height: 0.4rem;
     transform-origin: 50% 50%;
   }
-  
+
   svg {
     transition: transform 0.2s ease-in-out;
   }
@@ -86,11 +95,52 @@
 
   .options {
     margin: 0 0 1rem;
-    padding-left: 0.5rem;
+    padding: 0.25rem 0 0.25rem 0.5rem;
     border-left: 2px solid var(--game-bg);
   }
 
-  input {
-    margin-right: 0.25rem;
+  label {
+    display: grid;
+    grid-template-columns: 1rem auto;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  label + label {
+    margin: 0.5rem 0 0 0;
+  }
+
+  input[type="checkbox"] {
+    /* margin-right: 0.25rem; */
+    -webkit-appearance: none;
+    appearance: none;
+    /* For iOS < 15 to remove gradient background */
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+    width: 1rem;
+    height: 1rem;
+    transform: translateY(-1px);
+    display: grid;
+    place-content: center;
+  }
+
+  input[type="checkbox"]:hover {
+    background-color: var(--game-bg-lightest);
+  }
+
+  input[type="checkbox"]::before {
+    content: "";
+    width: 0.65em;
+    height: 0.65em;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em var(--game-bg);
+    transform-origin: bottom left;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+
+  input[type="checkbox"]:checked::before {
+    transform: scale(1);
   }
 </style>
