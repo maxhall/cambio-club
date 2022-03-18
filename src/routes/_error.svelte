@@ -1,4 +1,5 @@
 <script>
+  import Logo from "../components/Logo.svelte";
   import NewGameForm from "../components/NewGameForm.svelte";
   /** @type {number} */
   export let status;
@@ -13,6 +14,7 @@
 </svelte:head>
 
 <div class="pane">
+  <Logo />
   <h1>{status}</h1>
   
   <p>{error.message}</p>

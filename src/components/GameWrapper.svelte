@@ -5,6 +5,7 @@
   import NewGameForm from "./NewGameForm.svelte";
   import Game from "./Game.svelte";
   import LinkShare from "./LinkShare.svelte";
+  import Logo from "./Logo.svelte";
 
   /** @type {string} */
   export let gameId;
@@ -112,6 +113,7 @@
   <Game bind:this={gameComponent} {state} {socket} />
 {:else}
   <div class="pane">
+    <Logo />
     {#if status === "error"}
       <h1>{errorMessage}</h1>
       <NewGameForm />

@@ -40,15 +40,18 @@
   }
 </script>
 
-{#if canShare}
-  <button on:click={handleShare}>{buttonText}</button>
-{:else if canCopyToClipboard}
-  <button on:click={handleCopy}>{buttonText}</button>
-{:else}
-  <p>Game link:</p>
-{/if}
-<div class="link-wrapper">
-  <p>{gameURL}</p>
+<h3>Invite other players</h3>
+<div class="wrapper">
+  {#if canShare}
+    <button on:click={handleShare}>{buttonText}</button>
+  {:else if canCopyToClipboard}
+    <button on:click={handleCopy}>{buttonText}</button>
+  {:else}
+    <p>Share the game link:</p>
+  {/if}
+  <div class="url-wrapper">
+    <p>{gameURL}</p>
+  </div>
 </div>
 
 <style>
@@ -58,12 +61,20 @@
     margin-bottom: 0.5rem;
   }
 
-  .link-wrapper {
+  .wrapper {
     background: var(--game-bg-lightest);
-    padding: 0.25rem;
+    padding: 0.5rem;
     border-radius: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .url-wrapper {
+    width: 100%;
     white-space: nowrap;
     overflow-x: scroll;
+    text-align: center;
   }
 
   p {
