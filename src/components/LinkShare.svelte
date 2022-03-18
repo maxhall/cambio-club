@@ -46,10 +46,10 @@
   {:else if canCopyToClipboard}
     <button on:click={handleCopy}>{buttonText}</button>
   {:else}
-    <p>Share the game link:</p>
+    <p class="share-link">Share the game link:</p>
   {/if}
   <div class="url-wrapper">
-    <p>{gameURL}</p>
+    <p class="url">{gameURL}</p>
   </div>
 </div>
 
@@ -69,6 +69,10 @@
     align-items: center;
   }
   
+  .share-link {
+    margin-bottom: 0.5rem;
+  }
+  
   .url-wrapper {
     width: 100%;
     white-space: nowrap;
@@ -76,7 +80,7 @@
     text-align: center;
   }
 
-  p {
+  .url {
     opacity: 0.65;
     font-size: 18px;
     margin: 0;
