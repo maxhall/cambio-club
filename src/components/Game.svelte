@@ -5,6 +5,7 @@
   import Modal from "./Modal.svelte";
   import Rules from "./Rules.svelte";
   import TextEvents from "./TextEvents.svelte";
+  import GraphicEvents from "./GraphicEvents.svelte";
 
   /** @type {import('../types').ClientState} */
   export let state;
@@ -30,7 +31,9 @@
   $: if (state.state === "settingUp") hasRequestedRematch = false;
   $: showEndTurnButton = isEndTurnButtonVisible(state);
   $: showCountdownBar = isCountingDown(state);
-  $: isDeckOrPileSwap = state.state === "awaitingDeckSwapChoice" || state.state === "awaitingPileSwapChoice";
+  $: isDeckOrPileSwap =
+    state.state === "awaitingDeckSwapChoice" ||
+    state.state === "awaitingPileSwapChoice";
   $: isPlayerForbiddenFromSnapping = isMyTurn && isDeckOrPileSwap;
 
   /** @param state {import('../types').ClientState} */
@@ -54,11 +57,11 @@
 
     return false;
   }
-  
+
   /** @param state {import('../types').ClientState} */
   function isCountingDown(state) {
-    return (state.countdown) ? true : false;
-  };
+    return state.countdown ? true : false;
+  }
 
   async function handleLeave() {
     console.log("Leaving");
@@ -112,14 +115,17 @@
 
 <svelte:window on:keydown={(event) => handleKeydown(event)} />
 
-<div style="height: 100%;">
+<div style="height: 100%; background-color: var(--game-bg);">
   <header>
-    <button class="lowkey-button" on:click={() => (showRulesModal = true)}>Rules</button>
+    <button class="lowkey-button" on:click={() => (showRulesModal = true)}
+      >Rules</button
+    >
     <p class="game-id">Game {state.gameId}</p>
     <button class="lowkey-button" on:click={() => (showLeaveModal = true)}
       >Leave</button
     >
   </header>
+  <GraphicEvents events={state.events} />
   <Table
     cards={state.cards}
     currentTurnSessionId={state.currentTurnSessionId}
@@ -269,7 +275,7 @@
     padding: 0.5em 0 0;
     margin: 0 0.5em;
     line-height: 1;
-    border-bottom: 4px solid var(--white);
+    border-bottom: 2px solid var(--white);
   }
 
   .lowkey-button:hover {

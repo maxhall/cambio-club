@@ -110,6 +110,12 @@ export default class Cambio {
         /** @type {PlayerData} */
         let updatedPlayerData = {};
         if (existingPlayerData) {
+          if (existingPlayerData.name) {
+            this.events.push({
+              type: "text",
+              message: `${existingPlayerData.name} connected`,
+            });
+          }
           updatedPlayerData = { ...existingPlayerData };
         } else {
           // If there's no existing player, make sure name is null
@@ -1341,6 +1347,16 @@ export default class Cambio {
     this.state = this.stateBeforeSnapSuspension;
     this.setCanBeTapped(this.stateBeforeSnapSuspension);
 
+    const currentTurnPlayerName = this.players.get(
+      this.currentTurnSessionId
+    )?.name;
+    if (currentTurnPlayerName) {
+      this.events.push({
+        type: "text",
+        message: `Back to ${currentTurnPlayerName}'s turn`,
+      });
+    }
+
     if (this.viewingTimer) this.viewingTimer.start();
   }
 
@@ -1632,6 +1648,10 @@ export default class Cambio {
     return new Promise((resolve) => {
       this.state = "awaitingQueenLookChoice";
       this.setCanBeTapped(this.state);
+      this.events.push({
+        type: "graphic",
+        name: "queensGambit",
+      });
       this.events.push({
         type: "text",
         message: "Choose a card to look at",

@@ -209,7 +209,6 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color: var(--game-bg);
   }
 
   .card-area {

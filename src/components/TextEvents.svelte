@@ -2,7 +2,7 @@
   /** @type {import('../types').Events} */
   export let events;
 
-  const TIME_EVENT_IS_VISIBLE = 2500;
+  const TIME_EVENT_IS_VISIBLE = 3500;
   const TIME_BETWEEN_EVENTS = 1500;
 
   /** @type {import('../types').Events} */
