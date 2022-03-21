@@ -9,7 +9,7 @@
   const queue = [];
   const TIME_BETWEEN_EVENTS = 4000;
 
-  /** @type {{[index: string]: string[]}} */
+  /** @type {Record<import('../types').GraphicEventName, string[]>} */
   const graphicTypes = {
     queensGambit: [
       "queensGambit1.webp",
@@ -21,8 +21,7 @@
     penalty: [
       "penalty-wasted.webp",
       "penalty-ref.webp",
-      "penalty-kid.webp",
-    ],
+      "penalty-kid.webp"],
     mineLook: [
       "mineLook-SpiderMan.webp",
       "mineLook-Pup.webp",
@@ -30,15 +29,27 @@
     ],
     mateLook: [
       "mateLook-SideEye.webp",
-      "mateLook-MrBean.webp",
-    ],
+      "mateLook-MrBean.webp"],
     joker: [
-      "joker-heath.webp",
+      "joker-heath.webp"
     ],
     win: [
       "win-fireworks.webp",
       "win-streamers.webp"
-    ]
+    ],
+    gough: [
+      "gough-and-patty.jpg",
+      "gough.jpg",
+      "whitlam-dismissal.jpg"
+    ],
+    snap: [
+      "snap-explosion.webp",
+      "snap-the-rock.webp"
+    ],
+    cambio: [
+      "cambio-yelling.webp",
+      "cambio-rolling.webp"
+    ],
   };
 
   /** @type {NodeJS.Timeout | undefined} */
