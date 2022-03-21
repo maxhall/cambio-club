@@ -6,6 +6,7 @@
   import Rules from "./Rules.svelte";
   import TextEvents from "./TextEvents.svelte";
   import GraphicEvents from "./GraphicEvents.svelte";
+  import ErrorReporter from "./ErrorReporter.svelte";
 
   /** @type {import('../types').ClientState} */
   export let state;
@@ -193,7 +194,10 @@
   <Modal on:close={() => (showLeaveModal = false)}>
     <h2>Are you sure you want to leave?</h2>
     <p>This will end the game for everyone</p>
-    <button class="danger" on:click={handleLeave}>Leave</button>
+    <div class="centre-button">
+      <button class="danger" on:click={handleLeave}>Leave</button>
+    </div>
+    <ErrorReporter {socket} gameId={state.gameId} />
   </Modal>
 {/if}
 
@@ -235,6 +239,11 @@
   .controls {
     max-width: var(--controls-width);
     margin: 0 auto;
+  }
+
+  .centre-button {
+    display: grid;
+    align-content: center;
   }
 
   .actions {

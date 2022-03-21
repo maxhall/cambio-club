@@ -135,3 +135,15 @@ export type ClientState = {
 };
 
 export type SendStateToSession = (sessionId: string, clientState: ClientState) => void;
+
+export type GameStateLog = {
+    recievedUpdates: {
+        sessionId: string,
+        timestamp: number,
+        data: Update
+    }[],
+    sentClientStates: {
+        timestamp: number,
+        data: ClientState
+    }[]
+}

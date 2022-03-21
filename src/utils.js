@@ -1,3 +1,13 @@
+import { createLogger, format, transports } from 'winston';
+
+const logger = createLogger({
+  transports: [
+    new transports.Console({
+      format: format.combine(format.colorize(), format.simple()),
+    }),
+  ],
+});
+
 /**
  * Shuffles array in place. ES6 version from
  * https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array/6274381#6274381
@@ -128,4 +138,4 @@ class Timer {
   }
 }
 
-export { Timer, shuffledDeck, shuffle };
+export { logger, Timer, shuffledDeck, shuffle };

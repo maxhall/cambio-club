@@ -75,6 +75,10 @@ const requestRematchUpdateSchema = z.object({
   action: z.literal("requestRematch"),
 });
 
+const errorReportUpdateSchema = z.object({
+  action: z.literal("errorReport"),
+});
+
 const gameId = z.object({
   gameId: z.string().length(4),
 });
@@ -90,4 +94,5 @@ export const updateSchema = z.union([
   gameId.merge(passUpdateSchema),
   gameId.merge(cambioUpdateSchema),
   gameId.merge(requestRematchUpdateSchema),
+  gameId.merge(errorReportUpdateSchema),
 ]);

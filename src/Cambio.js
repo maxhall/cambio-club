@@ -1,6 +1,8 @@
 // @ts-check
+import path from "path";
+import { writeFileSync } from "fs";
 import { cloneDeep, isEqual } from "lodash";
-import { Timer, shuffledDeck, shuffle } from "./utils";
+import { logger, Timer, shuffledDeck, shuffle } from "./utils";
 
 /** @typedef {import('./types').Card} Card */
 /** @typedef {import('./types').MaskedCard} MaskedCard */
@@ -40,29 +42,62 @@ export default class Cambio {
     this.isApplyingUpdate = false;
     /** @type {boolean} */
     this.isCambioRound = false;
+    /** @type {import('./types').GameStateLog} */
+    this.gameStateLog = { sentClientStates: [], recievedUpdates: [] };
     /** @type {Card[]} */
     this.hiddenDeck = [];
     /** @type {Card[]} */
     this.hiddenPile = [];
     /** @type {import('./types').PermittedUpdates} */
     this.permittedUpdates = {
-      settingUp: ["setName", "indicateReady", "leave"],
-      dealing: ["leave"],
-      initialViewing: ["snap", "leave"],
-      snapSuspension: ["tapCard", "leave"],
-      awaitingSnapResolutionChoice: ["tapCard", "leave"],
-      startingTurn: ["tapCard", "snap", "cambio", "pass", "leave"],
-      awaitingDeckSwapChoice: ["tapCard", "snap", "leave"],
-      awaitingPileSwapChoice: ["tapCard", "snap", "leave"],
-      awaitingMateLookChoice: ["tapCard", "snap", "leave", "pass"],
-      previewingCard: ["snap", "leave"],
-      awaitingMineLookChoice: ["tapCard", "snap", "leave", "pass"],
-      awaitingQueenLookChoice: ["tapCard", "snap", "leave", "pass"],
-      awaitingQueenSwapOwnChoice: ["tapCard", "snap", "leave", "pass"],
-      awaitingQueenSwapOtherChoice: ["tapCard", "leave", "pass"],
-      awaitingBlindSwapOwnChoice: ["tapCard", "snap", "leave"],
-      awaitingBlindSwapOtherChoice: ["tapCard", "leave", "pass"],
-      gameOver: ["requestRematch", "leave"],
+      settingUp: ["setName", "indicateReady", "leave", "errorReport"],
+      dealing: ["leave", "errorReport"],
+      initialViewing: ["snap", "leave", "errorReport"],
+      snapSuspension: ["tapCard", "leave", "errorReport"],
+      awaitingSnapResolutionChoice: ["tapCard", "leave", "errorReport"],
+      startingTurn: [
+        "tapCard",
+        "snap",
+        "cambio",
+        "pass",
+        "leave",
+        "errorReport",
+      ],
+      awaitingDeckSwapChoice: ["tapCard", "snap", "leave", "errorReport"],
+      awaitingPileSwapChoice: ["tapCard", "snap", "leave", "errorReport"],
+      awaitingMateLookChoice: [
+        "tapCard",
+        "snap",
+        "leave",
+        "pass",
+        "errorReport",
+      ],
+      previewingCard: ["snap", "leave", "errorReport"],
+      awaitingMineLookChoice: [
+        "tapCard",
+        "snap",
+        "leave",
+        "pass",
+        "errorReport",
+      ],
+      awaitingQueenLookChoice: [
+        "tapCard",
+        "snap",
+        "leave",
+        "pass",
+        "errorReport",
+      ],
+      awaitingQueenSwapOwnChoice: [
+        "tapCard",
+        "snap",
+        "leave",
+        "pass",
+        "errorReport",
+      ],
+      awaitingQueenSwapOtherChoice: ["tapCard", "leave", "pass", "errorReport"],
+      awaitingBlindSwapOwnChoice: ["tapCard", "snap", "leave", "errorReport"],
+      awaitingBlindSwapOtherChoice: ["tapCard", "leave", "pass", "errorReport"],
+      gameOver: ["requestRematch", "leave", "errorReport"],
       exit: [],
       resolvingSnap: ["leave"],
       finishingDeckSwap: ["leave"],
@@ -126,7 +161,7 @@ export default class Cambio {
 
         this.players.set(sessionId, updatedPlayerData);
 
-        console.log(`Adding player ${sessionId}`);
+        logger.info(`Adding player ${sessionId}`);
         resolve(this.sendStateToAll());
       }
     );
@@ -796,6 +831,12 @@ export default class Cambio {
         return;
       }
 
+      this.gameStateLog.recievedUpdates.push({
+        timestamp: Date.now(),
+        data: update,
+        sessionId,
+      });
+
       switch (update.action) {
         case "setName":
           const existingPlayerData = this.players.get(sessionId);
@@ -926,6 +967,18 @@ export default class Cambio {
             });
             resolve(this.sendStateToAll());
           }
+          break;
+
+        case "errorReport":
+          logger.error("A user reported an error");
+          const dev = process.env.NODE_ENV === "development";
+          if (dev) {
+            writeFileSync(
+              path.resolve("logs", `gameStateLog-${Date.now()}.json`),
+              JSON.stringify(this.gameStateLog)
+            );
+          }
+          logger.info(this.gameStateLog);
           break;
       }
 
@@ -1488,6 +1541,10 @@ export default class Cambio {
           state: this.state,
         };
         this.sendStateToSession(sessionId, clientState);
+        this.gameStateLog.sentClientStates.push({
+          timestamp: Date.now(),
+          data: clientState,
+        });
       }
 
       resolve();
