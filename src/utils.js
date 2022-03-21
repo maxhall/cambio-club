@@ -1,13 +1,3 @@
-import { createLogger, format, transports } from 'winston';
-
-const logger = createLogger({
-  transports: [
-    new transports.Console({
-      format: format.combine(format.colorize(), format.simple()),
-    }),
-  ],
-});
-
 /**
  * Shuffles array in place. ES6 version from
  * https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array/6274381#6274381
@@ -87,8 +77,8 @@ class Timer {
   /**
    * @param {() => void} callback
    * @param {number} delay Time in milliseconds
-   * 
-   * This probably wouldn't respond well to `start()` being called several times 
+   *
+   * This probably wouldn't respond well to `start()` being called several times
    * nor does it prevent being restrated once it's finished
    */
   constructor(callback, delay) {
@@ -104,14 +94,14 @@ class Timer {
   }
 
   start() {
-    console.log('Timer started');
+    console.log("Timer started");
     this.running = true;
     this.startedTime = new Date().valueOf();
     this.timeout = setTimeout(this.callback, this.remaining);
   }
 
   pause() {
-    console.log('Timer paused');
+    console.log("Timer paused");
     this.running = false;
     clearTimeout(this.timeout);
     const timeElapsedSinceLastStart = new Date().valueOf() - this.startedTime;
@@ -138,4 +128,4 @@ class Timer {
   }
 }
 
-export { logger, Timer, shuffledDeck, shuffle };
+export { Timer, shuffledDeck, shuffle };

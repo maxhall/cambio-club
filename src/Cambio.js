@@ -2,7 +2,7 @@
 import path from "path";
 import { writeFileSync } from "fs";
 import { cloneDeep, isEqual } from "lodash";
-import { logger, Timer, shuffledDeck, shuffle } from "./utils";
+import { Timer, shuffledDeck, shuffle } from "./utils";
 
 /** @typedef {import('./types').Card} Card */
 /** @typedef {import('./types').MaskedCard} MaskedCard */
@@ -161,7 +161,7 @@ export default class Cambio {
 
         this.players.set(sessionId, updatedPlayerData);
 
-        logger.info(`Adding player ${sessionId}`);
+        console.log(`Adding player ${sessionId}`);
         resolve(this.sendStateToAll());
       }
     );
@@ -970,7 +970,7 @@ export default class Cambio {
           break;
 
         case "errorReport":
-          logger.error("A user reported an error");
+          console.error("A user reported an error");
           const dev = process.env.NODE_ENV === "development";
           if (dev) {
             writeFileSync(
@@ -978,7 +978,7 @@ export default class Cambio {
               JSON.stringify(this.gameStateLog)
             );
           }
-          logger.info(this.gameStateLog);
+          console.log(JSON.stringify(this.gameStateLog));
           break;
       }
 
@@ -1093,6 +1093,13 @@ export default class Cambio {
             type: "text",
             message: "Your turn",
             recipientSessionIds: [this.currentTurnSessionId],
+          });
+        }
+
+        if (currentPlayerData?.name?.toLowerCase().includes("gough")) {
+          this.events.push({
+            type: "graphic",
+            name: "gough",
           });
         }
 
