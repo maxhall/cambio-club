@@ -28,6 +28,7 @@
 <p>The fewer cards a player has the better their chance of winning. To get rid of cards, a player can snap a card onto the pile if its rank matches the visible card. For example, if the visible pile card is a two of hearts, a player with a two of any suit could immediately place it on the pile.</p>
 <p>This can happen any time, including during another player's turn or while peeking at the closest two cards at the game's start, but each card can only be snapped onto once.</p>
 <p>A player who snaps incorrectly draws a penalty card from the deck and places it in front of them without looking at it. If a card with an associated action is snapped, the action is not triggered a second time. Play returns to the player who originally played the card and they take their action.</p>
+<p>Tip: Tapping the "s" key on your keyboard is the same a tapping the "snap" button.</p>
 <h3>Options</h3>
 <ul>
     <li>"Allow snapping others' cards" lets you snap another player's card. It's the default on this site, because we're not cowards. If a player snaps correctly they can place one of their cards where the snapped card was. But if they get it wrong, they have to take the player's card and a penalty card.</li>

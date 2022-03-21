@@ -66,6 +66,7 @@
     max-width: 20rem;
     min-width: 10rem;
     max-height: calc(100% - 2rem);
+    border-radius: 0.25rem;
   }
 
   .content {
@@ -89,5 +90,11 @@
 
   svg {
     fill: var(--game-bg);
+  }
+
+  @media (max-width:500px) {
+    .inner {
+      margin: 1rem;
+    }
   }
 </style>
