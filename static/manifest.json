@@ -1,8 +1,8 @@
 {
 	"background_color": "#ffffff",
-	"theme_color": "#333333",
-	"name": "TODO",
-	"short_name": "TODO",
+	"theme_color": "#212f59",
+	"name": "Cambio Club",
+	"short_name": "Cambio",
 	"display": "minimal-ui",
 	"start_url": "/",
 	"icons": [
