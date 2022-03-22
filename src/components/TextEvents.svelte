@@ -58,7 +58,7 @@
     position: fixed;
     bottom: 50px;
     width: 100%;
-    z-index: 2000;
+    z-index: var(--z-text-events);
   }
 
   .event-text {

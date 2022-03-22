@@ -12,6 +12,11 @@
   --viewing-blue-light: hsl(210, 100%, 70%);
   --viewing-blue-lightest: hsl(210, 100%, 95%);
   --controls-width: 14.5rem;
+
+  --z-game-header: 1;
+  --z-game-card: 2;
+  --z-text-events: 3;
+  --z-modal: 4;
 }
 
 @font-face {

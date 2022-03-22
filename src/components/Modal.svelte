@@ -55,7 +55,7 @@
     height: 100%;
     top: 0;
     left: 0;
-    z-index: 1000;
+    z-index: var(--z-modal);
     background-color: rgba(20, 20, 20, 0.8);
   }
 

@@ -212,7 +212,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    z-index: 100;
+    z-index: var(--z-game-header);
   }
 
   .game-id {

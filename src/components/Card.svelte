@@ -65,7 +65,12 @@
       <CardPath {width} {rank} {suit} />
     </svg>
   {:else}
-    <img class="back" src="bread.png" alt="Beautiful loaves of bread arrayed on a table">
+    <div
+      class="back"
+      style="background: repeating-linear-gradient( -45deg, #444cf7, #444cf7 {width /
+        6.4}px, var(--white) {width / 6.4}px, var(--white) {width /
+        4}px ); border-width: {width / 10}px"
+    />
   {/if}
 </div>
 
@@ -74,7 +79,7 @@
     box-sizing: border-box;
     background-color: var(--white);
     border-radius: 2px;
-    z-index: 1000;
+    z-index: var(--z-game-card);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -82,9 +87,8 @@
 
   .back {
     height: 100%;
-    background-color: var(--cream);
-    border: 4px solid var(--cream);
     border-radius: 2px;
+    border: 4px solid var(--white);
   }
 
   .canBeTapped {
@@ -106,7 +110,7 @@
       box-shadow: none;
     }
   }
-  
+
   .selected {
     border: 1px solid var(--viewing-blue-light);
     box-shadow: 0px 0px 2px 2px var(--viewing-blue-light);

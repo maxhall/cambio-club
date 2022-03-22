@@ -41,7 +41,7 @@
     border-style: solid;
     border-width: 2px 2px 0 2px;
     border-radius: 0.25rem 0.25rem 0 0;
-    /* box-shadow: inset 0 0 5px black; */
+    position: relative;
   }
   
   .bar {
