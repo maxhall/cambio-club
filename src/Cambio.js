@@ -518,6 +518,16 @@ export default class Cambio {
       };
 
       this.viewingTimer = new Timer(() => {
+        console.log(`mineLook callback`);
+        console.log(`this.previewedCardWasSnapped:`);
+        console.log(this.previewedCardWasSnapped);
+        console.log(`this.previewedCardOriginalPosition:`);
+        console.log(this.previewedCardOriginalPosition);
+        console.log(`tappedCard.position`);
+        console.log(tappedCard.position);
+        console.log(`cardPosition:`);
+        console.log(cardPosition);
+
         if (!this.previewedCardWasSnapped) {
           tappedCard.position = cardPosition;
         }
@@ -560,6 +570,16 @@ export default class Cambio {
       };
 
       this.viewingTimer = new Timer(() => {
+        console.log(`mineLook callback`);
+        console.log(`this.previewedCardWasSnapped:`);
+        console.log(this.previewedCardWasSnapped);
+        console.log(`this.previewedCardOriginalPosition:`);
+        console.log(this.previewedCardOriginalPosition);
+        console.log(`tappedCard.position`);
+        console.log(tappedCard.position);
+        console.log(`cardPosition:`);
+        console.log(cardPosition);
+
         if (!this.previewedCardWasSnapped) {
           tappedCard.position = cardPosition;
         }
@@ -695,7 +715,8 @@ export default class Cambio {
       return {
         type: "viewing",
         remainingTime: this.viewingTimer.getRemainingTime(),
-        totalTime: (this.state === "initialViewing") ? INITIAL_VIEWING_TIME : LOOK_TIME,
+        totalTime:
+          this.state === "initialViewing" ? INITIAL_VIEWING_TIME : LOOK_TIME,
         // If state is initial viewing then set null so everyone is subject to the timer,
         // otherwise the timer is just for whoever's turn it is
         subjectPlayer:
@@ -1089,7 +1110,7 @@ export default class Cambio {
         } else {
           this.events.push({
             type: "text",
-            message: "Your turn",
+            message: "Your turn. Tap the deck or pile",
             recipientSessionIds: [this.currentTurnSessionId],
           });
         }
@@ -1376,8 +1397,11 @@ export default class Cambio {
           ? snappingPlayersTableCards.length + 1
           : snappingPlayersTableCards.length;
         if (snappingPlayersRealTableCardCount <= TABLE_CARD_SLOTS) {
-          console.log('Here I am motherfucker');
-          if (this.previewedCardWasSnapped && this.previewedCardOriginalPosition) {
+          console.log("Here I am motherfucker");
+          if (
+            this.previewedCardWasSnapped &&
+            this.previewedCardOriginalPosition
+          ) {
             cardAtSnapPosition.position = this.previewedCardOriginalPosition;
           }
         } else {
