@@ -13,7 +13,7 @@
 </svelte:head>
 
 <div class="wrapper">
-  <main class="pane">
+  <main class="pane front-pane">
     <h1>CAMBIO</h1>
     <video loop muted autoplay playsinline poster="/front-gameplay-poster.png">
       <source src="front-gameplay.webm" type="video/webm" />
@@ -26,14 +26,14 @@
       <JoinGameForm />
     </section>
     <section class="learn-wrapper">
-      <button class="learn-button" on:click={() => (showRulesModal = true)}>Learn to play</button>
+      <button class="learn-button" on:click={() => (showRulesModal = true)}
+        >Learn to play</button
+      >
     </section>
-  </main>
-  <footer class="pane reset">
     <p class="credit">
       Made by <a href="https://twitter.com/maxjhall">Max Hall</a>
     </p>
-  </footer>
+  </main>
 </div>
 
 {#if showRulesModal}
@@ -55,27 +55,38 @@
     min-height: 100%;
     display: grid;
     grid-template-rows: 1fr auto;
+    background-color: var(--game-bg);
+  }
+
+  .front-pane {
+    margin: 1rem auto;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: 0.5rem;
+  }
+
+  @media (max-width: 500px) {
+    .front-pane {
+      border-radius: 0;
+      margin: 0;
+    }
   }
 
   h1 {
     text-align: center;
     margin: 0 0 -1rem 0;
     line-height: 0.9;
-    z-index: 5;
+    z-index: 1;
     position: relative;
   }
 
   video {
     width: 100%;
   }
-  
+
   section {
     margin: 0 0 1rem;
     width: 100%;
-  }
-
-  .reset {
-    padding: 0;
   }
 
   .learn-wrapper {
@@ -89,7 +100,8 @@
 
   .credit {
     font-size: 16px;
-    margin-bottom: 0.5rem;
     color: var(--game-bg);
+    margin-bottom: 0;
+    text-align: center;
   }
 </style>
