@@ -54,7 +54,7 @@
   .wrapper {
     min-height: 100%;
     display: grid;
-    grid-template-rows: 1fr auto;
+    grid-template-rows: auto 1fr;
     background-color: var(--game-bg);
   }
 
@@ -69,6 +69,10 @@
     .front-pane {
       border-radius: 0;
       margin: 0;
+    }
+
+    .wrapper {
+      background: var(--white);
     }
   }
 
