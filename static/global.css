@@ -145,11 +145,13 @@ label {
 
 @media (max-width: 460px) {
   .input-pair {
-    display: block;
+  flex-direction: column;
+  align-items: center;
   }
 
   .input-pair input[type="text"] {
     margin-bottom: 0.25rem;
+    margin-right: 0;
     width: 100%;
   }
 }

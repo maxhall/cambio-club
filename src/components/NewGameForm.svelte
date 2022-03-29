@@ -50,20 +50,20 @@
     >
     Options
   </button>
-  {#if showOptions}
-    <div transition:slide class="options">
-      {#each options as option}
-        <label
-          ><input
-            type="checkbox"
-            value={option}
-            bind:group={selectedOptions}
-          />{option}</label
-        >
-      {/each}
-    </div>
-  {/if}
 </form>
+{#if showOptions}
+  <div transition:slide class="options">
+    {#each options as option}
+      <label
+        ><input
+          type="checkbox"
+          value={option}
+          bind:group={selectedOptions}
+        />{option}</label
+      >
+    {/each}
+  </div>
+{/if}
 
 <style>
   .primary-button {

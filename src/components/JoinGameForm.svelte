@@ -31,19 +31,14 @@
     <button on:click|preventDefault={joinGame}>Join game</button>
   </div>
 </form>
-<div class="error-wrapper">
-  {#if joinError}
-    <p transition:slide class="error">{joinError}</p>
-  {/if}
-</div>
+{#if joinError}
+  <p transition:slide class="error">{joinError}</p>
+{/if}
 
 <style>
-  .error-wrapper {
-    height: 1rem;
-    margin: 0.25rem 0 0;
-  }
-
   .error {
     color: red;
+    font-size: 18px;
+    margin: 0.25rem 0 0.25rem;
   }
 </style>
