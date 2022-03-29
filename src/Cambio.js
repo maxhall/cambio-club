@@ -695,7 +695,7 @@ export default class Cambio {
       return {
         type: "viewing",
         remainingTime: this.viewingTimer.getRemainingTime(),
-        totalTime: INITIAL_VIEWING_TIME,
+        totalTime: (this.state === "initialViewing") ? INITIAL_VIEWING_TIME : LOOK_TIME,
         // If state is initial viewing then set null so everyone is subject to the timer,
         // otherwise the timer is just for whoever's turn it is
         subjectPlayer:
@@ -886,8 +886,6 @@ export default class Cambio {
           break;
 
         case "tapCard":
-          console.log(`Tapped card:`);
-          console.log(update);
           if (
             this.state === "snapSuspension" &&
             sessionId === this.playerWhoSnapped
@@ -1378,13 +1376,10 @@ export default class Cambio {
           ? snappingPlayersTableCards.length + 1
           : snappingPlayersTableCards.length;
         if (snappingPlayersRealTableCardCount <= TABLE_CARD_SLOTS) {
-          cardAtSnapPosition.position = this.previewedCardOriginalPosition || {
-            area: "table",
-            player: snappingPlayerTablePosition,
-            tableSlot: this.getFirstAvailableTableSlot(
-              snappingPlayerTablePosition
-            ),
-          };
+          console.log('Here I am motherfucker');
+          if (this.previewedCardWasSnapped && this.previewedCardOriginalPosition) {
+            cardAtSnapPosition.position = this.previewedCardOriginalPosition;
+          }
         } else {
           // If we're here, you previewed one of your own cards, incorrectly
           // snapped it, took a penalty that overflowed your table (which shouldn't
