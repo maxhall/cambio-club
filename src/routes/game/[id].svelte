@@ -19,6 +19,10 @@
   // https://github.com/sveltejs/kit/issues/552#issuecomment-714192401
 </script>
 
+<svelte:head>
+  <title>Cambio {gameId}</title>
+  <meta property="og:title" content="Play Cambio game {gameId}" />
+</svelte:head>
 {#key gameId}
   <GameWrapper {gameId} />
 {/key}

@@ -10,11 +10,12 @@
 
 <svelte:head>
   <title>Cambio Club</title>
+  <meta property="og:title" content="Cambio Club" />
 </svelte:head>
 
 <div class="wrapper">
   <main class="pane front-pane">
-    <h1>CAMBIO</h1>
+    <h1>Cambio Club</h1>
     <video loop muted autoplay playsinline poster="/front-gameplay-poster.png">
       <source src="front-gameplay.webm" type="video/webm" />
       <source src="front-gameplay.mp4" type="video/mp4" />
@@ -31,7 +32,7 @@
       >
     </section>
     <p class="credit">
-      Made by <a href="https://twitter.com/maxjhall">Max Hall</a>
+      By <a href="https://twitter.com/maxjhall">Max Hall</a>
     </p>
   </main>
 </div>
@@ -82,6 +83,8 @@
     line-height: 0.9;
     z-index: 1;
     position: relative;
+    text-transform: uppercase;
+    letter-spacing: -1px;
   }
 
   video {
