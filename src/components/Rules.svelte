@@ -1,6 +1,6 @@
 <h2>How to play</h2>
 <p>
-  Cambio is a game for two or more people, played with a standard deck and two
+  Cambio is a card game for two or more people, played with a standard deck and two
   jokers. It's a memory and card swapping game, quite similar to Cabo.
 </p>
 <p>

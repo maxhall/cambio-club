@@ -224,7 +224,7 @@
   }
 
   .current-player {
-    text-decoration: underline solid var(--snap-orange) 2px;
+    text-decoration: underline solid var(--white) 2px;
   }
 
   :global(.card-area div) {
