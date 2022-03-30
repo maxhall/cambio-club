@@ -4,6 +4,7 @@
   import NewGameForm from "../components/NewGameForm.svelte";
   import Rules from "../components/Rules.svelte";
   import Modal from "../components/Modal.svelte";
+  import SpinningCard from "../components/SpinningCard.svelte";
 
   let showRulesModal = false;
 </script>
@@ -24,9 +25,11 @@
     <section class="centred-content">
       <NewGameForm />
     </section>
+    <SpinningCard />
     <section class="centred-content">
       <JoinGameForm />
     </section>
+    <SpinningCard />
     <section class="learn-wrapper">
       <button class="learn-button" on:click={() => (showRulesModal = true)}
         >Learn to play</button
@@ -100,10 +103,6 @@
   .learn-wrapper {
     display: flex;
     justify-content: center;
-  }
-
-  .learn-button {
-    margin-top: 0.5rem;
   }
 
   .credit {

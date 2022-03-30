@@ -41,10 +41,11 @@
   >
   <button
     class="toggle"
+    class:toggled={showOptions}
     on:click|preventDefault={() => (showOptions = !showOptions)}
   >
     <span
-      ><svg class:toggled={showOptions} viewBox="0 0 12 12"
+      ><svg class:icon-toggled={showOptions} viewBox="0 0 12 12"
         ><path d="M0 0 0 12 10 6Z" /></svg
       ></span
     >
@@ -81,7 +82,7 @@
     transition: transform 0.2s ease-in-out;
   }
 
-  .toggled {
+  .icon-toggled {
     transform: rotate(0.25turn);
   }
 
@@ -89,8 +90,12 @@
     font-size: 16px;
     display: block;
     border: none;
-    margin: 0 0 0.5rem;
+    margin: 0;
     padding: 0rem 0.25rem;
+  }
+
+  .toggled {
+    margin: 0 0 0.5rem;
   }
 
   .options {
