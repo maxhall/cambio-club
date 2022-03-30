@@ -21,7 +21,7 @@
     penalty: ["penalty-wasted.webp", "penalty-ref.webp", "penalty-kid.webp"],
     mineLook: [
       "mineLook-SpiderMan.webp",
-      "mineLook-Pup.webp",
+      "mineLook-Puppy.webp",
       "mineLook-Portman.webp",
     ],
     mateLook: ["mateLook-SideEye.webp", "mateLook-MrBean.webp"],
