@@ -18,38 +18,18 @@
       "queensGambit4.webp",
       "queensGambit5.webp",
     ],
-    penalty: [
-      "penalty-wasted.webp",
-      "penalty-ref.webp",
-      "penalty-kid.webp"],
+    penalty: ["penalty-wasted.webp", "penalty-ref.webp", "penalty-kid.webp"],
     mineLook: [
       "mineLook-SpiderMan.webp",
       "mineLook-Pup.webp",
       "mineLook-Portman.webp",
     ],
-    mateLook: [
-      "mateLook-SideEye.webp",
-      "mateLook-MrBean.webp"],
-    joker: [
-      "joker-heath.webp"
-    ],
-    win: [
-      "win-fireworks.webp",
-      "win-streamers.webp"
-    ],
-    gough: [
-      "gough-and-patty.jpg",
-      "gough.jpg",
-      "whitlam-dismissal.jpg"
-    ],
-    snap: [
-      "snap-explosion.webp",
-      "snap-the-rock.webp"
-    ],
-    cambio: [
-      "cambio-yelling.webp",
-      "cambio-rolling.webp"
-    ],
+    mateLook: ["mateLook-SideEye.webp", "mateLook-MrBean.webp"],
+    joker: ["joker-heath.webp"],
+    win: ["win-fireworks.webp", "win-streamers.webp"],
+    gough: ["gough-and-patty.jpg", "gough.jpg", "whitlam-dismissal.jpg"],
+    snap: ["snap-explosion.webp", "snap-the-rock.webp"],
+    cambio: ["cambio-yelling.webp", "cambio-rolling.webp"],
   };
 
   /** @type {NodeJS.Timeout | undefined} */
@@ -61,11 +41,8 @@
 
   /** @param {import('../types').Events} newEvents */
   function processEvents(newEvents) {
-    console.log("Processing graphics events");
     newEvents.forEach((event) => {
       if (event.type === "graphic") {
-        console.log("Received graphic event:");
-        console.log(event);
         queue.push(event);
       }
     });
@@ -74,23 +51,15 @@
   }
 
   function runQueue() {
-    console.log("Run queue called");
     if (queueTimer) {
       return;
     }
-    console.log("Running graphic event queue");
     const event = queue.shift();
-    console.log("Found event:");
-    console.log(event);
     if (event) {
-      console.log(`Taking event off the queue:`);
-      console.log(event);
       if (graphicTypes[event.name] && graphicTypes[event.name].length > 0) {
         graphicUrl = shuffle(graphicTypes[event.name])[0];
-        console.log(`Setting graphicUrl: ${graphicUrl}`);
       }
       queueTimer = setTimeout(() => {
-        console.log(`Removing ${graphicUrl}`);
         graphicUrl = null;
         queueTimer = undefined;
         runQueue();

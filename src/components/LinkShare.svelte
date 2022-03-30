@@ -3,14 +3,14 @@
   export let gameId;
 
   const dev = process.env.NODE_ENV === "development";
-  // TODO: Update to actual production url
   const gameURL = dev
     ? `localhost:3000/game/${gameId}`
     : `https://cambio-club.herokuapp.com/game/${gameId}`;
-  const canCopyToClipboard = (navigator.clipboard && navigator.clipboard.writeText) ? true : false;
+  const canCopyToClipboard =
+    (navigator.clipboard && navigator.clipboard.writeText) ? true : false;
   let canShare = (navigator.share) ? true : false;
 
-  let buttonText = (canShare) ? "Share game link" : "Copy game link";
+  let buttonText = canShare ? "Share game link" : "Copy game link";
 
   function handleCopy() {
     navigator.clipboard.writeText(gameURL);
@@ -68,11 +68,11 @@
     flex-direction: column;
     align-items: center;
   }
-  
+
   .share-link {
     margin-bottom: 0.5rem;
   }
-  
+
   .url-wrapper {
     width: 100%;
     white-space: nowrap;

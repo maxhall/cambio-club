@@ -60,7 +60,7 @@ const snapUpdateSchema = z.object({
 
 const tapCardUpdateSchema = z.object({
   action: z.literal("tapCard"),
-  cardPosition: cardPositionSchema
+  cardPosition: cardPositionSchema,
 });
 
 const passUpdateSchema = z.object({
@@ -83,7 +83,7 @@ const gameId = z.object({
   gameId: z.string().length(4),
 });
 
-// Explanation of Slightly annoying structure here:
+// This annoying structure is explained here:
 // https://github.com/colinhacks/zod/issues/147
 export const updateSchema = z.union([
   gameId.merge(setNameUpdateSchema),

@@ -21,15 +21,20 @@ export default function solveLayout(
    **/
   const dimensionsGivenCardWidth = (width, numberOfPlayers, labelMargin) => {
     const cardHeight = width * 1.4;
-    const cardGap = (availableHeight > 1000 || availableWidth > 1000) ? width * 0.15 : width * 0.25;
+    const cardGap =
+      availableHeight > 1000 || availableWidth > 1000
+        ? width * 0.15
+        : width * 0.25;
     const side = 4 * width + 3 * cardGap;
     // For 2 players, there's no apothem so cardHeight * 2 gives enough room
     // Otherwise calculate the apothem or inradius of the polygon and add cardHeight / 2
-    // to account for the card transforms starting half above the origin
+    // to account for card transforms starting half their height above the origin point
     const offsetFromCentre =
       numberOfPlayers === 2
         ? cardHeight * 2 + labelMargin
-        : (side / (2 * Math.tan(Math.PI/numberOfPlayers))) + (cardHeight / 2) + labelMargin;
+        : side / (2 * Math.tan(Math.PI / numberOfPlayers)) +
+          cardHeight / 2 +
+          labelMargin;
     return { cardHeight, cardGap, side, offsetFromCentre };
   };
 
@@ -39,7 +44,8 @@ export default function solveLayout(
     const { cardHeight, cardGap, side, offsetFromCentre } =
       dimensionsGivenCardWidth(newCardWidth, numberOfPlayers, labelMargin);
 
-    // Calculate the points of the rectangle off the bottom
+    // Calculate the coordinates of of a rectangle enclosing the table
+    // and viewing areas of the player at position 0
     const tableAreaCoords = [
       [-side / 2, -offsetFromCentre],
       [side / 2, -offsetFromCentre],
@@ -48,6 +54,7 @@ export default function solveLayout(
     ];
 
     // Rotate those numberOfPlayers times, adding each point to the array
+    // so we have all candidates for extreme points of the card layout
     /** @type {[number, number][]} */
     const rotatedTableAreaCoords = [];
     for (let i = 0; i < numberOfPlayers; i++) {

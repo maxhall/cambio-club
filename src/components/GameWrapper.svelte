@@ -31,8 +31,10 @@
     socket.connect();
   }
 
-  $: currentPlayer = (state) ? state.players.find(p => p.sessionId == state.sessionId) : null;
-  $: hasIndicatedReady = (currentPlayer) ? currentPlayer.ready : false;
+  $: currentPlayer = state
+    ? state.players.find((p) => p.sessionId == state.sessionId)
+    : null;
+  $: hasIndicatedReady = currentPlayer ? currentPlayer.ready : false;
 
   onMount(() => {
     socket.on(
@@ -59,7 +61,7 @@
           status = "creatingName";
         }
 
-        console.log(data);
+        if (process.env.NODE_ENV === "development") console.log(data);
       }
     );
 
@@ -70,7 +72,7 @@
     });
 
     socket.on("session", (data) => {
-      console.log(data);
+      if (process.env.NODE_ENV === "development") console.log(data);
       socket.auth = { sessionId: data.sessionId };
       localStorage.setItem("sessionId", data.sessionId);
     });
@@ -144,7 +146,9 @@
         {/each}
       </ol>
       {#if !hasIndicatedReady}
-        <button in:slide class="ready-button danger" on:click={handleReady}>I'm ready to play</button>
+        <button in:slide class="ready-button danger" on:click={handleReady}
+          >I'm ready to play</button
+        >
       {/if}
       <LinkShare {gameId} />
     {:else if status === "exit"}

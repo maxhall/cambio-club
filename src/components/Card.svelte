@@ -35,7 +35,6 @@
   $: $tweenedTransforms = transforms;
 
   function handleClick() {
-    console.log("Click before canBeTapped check...");
     if (canBeTapped) {
       /** @type {import('../types').Update} */
       const update = {
@@ -43,7 +42,6 @@
         action: "tapCard",
         cardPosition: position,
       };
-      console.log(update);
       socket.emit("update", update);
     }
   }

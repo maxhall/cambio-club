@@ -1,7 +1,7 @@
 /**
  * Shuffles array in place. ES6 version from
  * https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array/6274381#6274381
- * @param {Array<any>} givenA items An array containing the items.
+ * @param {Array<any>} givenA items An array containing the items
  */
 function shuffle(givenA) {
   const a = [...givenA];
@@ -77,9 +77,6 @@ class Timer {
   /**
    * @param {() => void} callback
    * @param {number} delay Time in milliseconds
-   *
-   * This probably wouldn't respond well to `start()` being called several times
-   * nor does it prevent being restrated once it's finished
    */
   constructor(callback, delay) {
     this.callback = callback;
@@ -94,14 +91,12 @@ class Timer {
   }
 
   start() {
-    console.log("Timer started");
     this.running = true;
     this.startedTime = new Date().valueOf();
     this.timeout = setTimeout(this.callback, this.remaining);
   }
 
   pause() {
-    console.log("Timer paused");
     this.running = false;
     clearTimeout(this.timeout);
     const timeElapsedSinceLastStart = new Date().valueOf() - this.startedTime;
@@ -109,7 +104,6 @@ class Timer {
   }
 
   remove() {
-    console.log(`Removing timer`);
     this.running = false;
     clearTimeout(this.timeout);
   }

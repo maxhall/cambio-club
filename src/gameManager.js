@@ -24,7 +24,6 @@ class GameManager {
       const session = this.sessions.get(sessionId);
       if (session) {
         session.sockets.forEach((socketId) => {
-          // console.log(`Session ${sessionId} update going to ${socketId}`);
           ioServer.to(socketId).emit("update", clientState);
         });
       }
@@ -37,7 +36,6 @@ class GameManager {
     for (const [key, value] of this.games.entries()) {
       let readyForDeletion = false;
       if (value.getState() === "exit") readyForDeletion = true;
-      // Casting to SessionData[]
       const associatedSessions = /** @type {SessionData[]} */ (
         value
           .getPlayerSessionIds()
@@ -49,7 +47,6 @@ class GameManager {
         })
         .includes(true);
       if (!sessionHasConnectedPlayer) {
-        // Some nastiness to make the types play nice
         /** @type {(a: string | undefined , b: string | undefined) => number} */
         const newestFirst = (a, b) => {
           if (!a) {
@@ -77,9 +74,9 @@ class GameManager {
     }
 
     console.log(
-      `Clean up: Complete. Removed ${count} game${count === 1 ? "" : "s"}. ${
-        1000 - this.games.size
-      } game ids are available`
+      `Game manager clean up: Complete. Removed ${count} game${
+        count === 1 ? "" : "s"
+      }. ${1000 - this.games.size} game ids are available`
     );
   }
 
@@ -90,7 +87,6 @@ class GameManager {
    * @returns {{idStatus: 'exists' | 'created', sessionId: string}}
    */
   connectSocketToSession(sessionId, socketId) {
-    // If there's no id, create a new one
     let confirmedSessionId = sessionId || randomId();
     const existingSessionData = sessionId
       ? this.sessions.get(sessionId)
@@ -175,10 +171,8 @@ class GameManager {
 
     if (session) {
       const sessionStatus = session.connected;
-      // Look in each game
       for (const value of this.games.values()) {
         const sessionIdsInGame = value.getPlayerSessionIds();
-        // If the session is in it, update its status
         if (sessionIdsInGame.includes(sessionId)) {
           value.setPlayerConnectionStatus(sessionId, sessionStatus);
         }

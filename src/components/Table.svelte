@@ -31,7 +31,7 @@
   $: thisPlayer = players.find((p) => {
     return thisClientSessionId === p.sessionId;
   });
-  // This is subtracted from each rotation calculation so the player's browser always
+  // This is subtracted from each rotation calculation so the player's browser
   // shows their cards and info at the bottom
   $: localTablePositionOffset = thisPlayer ? thisPlayer.tablePosition : 0;
   $: availableHeight = clientHeight ? clientHeight - 2 * margin : 100;
@@ -109,8 +109,8 @@
         break;
 
       case "table":
-        // The 'table' area for each player has 2 rows of 4 cards so initially move the card left
-        // so it's in slot 0 and we can move it between slots from there
+        // The 'table' area for each player has 2 rows of 4 cards so initially
+        // move the card left to slot 0 and then move it relative to that slot
         xLocal += (cardWidth + cardGap) * -1.5;
         xLocal += (position.tableSlot % 4) * (cardWidth + cardGap);
         yLocal += centreToTablePositionOffset;
@@ -156,8 +156,9 @@
   function correctNameOrientation(position) {
     const positionRotation =
       (1 / players.length) * (position - localTablePositionOffset);
-    if (Math.abs(positionRotation) > 0.25 && Math.abs(positionRotation) < 0.75) return '0.5';
-    return '0';
+    if (Math.abs(positionRotation) > 0.25 && Math.abs(positionRotation) < 0.75)
+      return "0.5";
+    return "0";
   }
 </script>
 
@@ -187,7 +188,9 @@
                 localTablePositionOffset)}turn); font-size: {playerLabelSize}px;"
           >
             <div
-              style="transform: translateY({playerLabelOffset}px) rotate({correctNameOrientation(player.tablePosition)}turn);"
+              style="transform: translateY({playerLabelOffset}px) rotate({correctNameOrientation(
+                player.tablePosition
+              )}turn);"
             >
               <p
                 class="label"

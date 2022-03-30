@@ -16,11 +16,8 @@
 <div class="pane">
   <Logo />
   <h1>{status}</h1>
-  
   <p>{error.message}</p>
-  
   <NewGameForm />
-  
   {#if dev && error.stack}
     <pre>{error.stack}</pre>
   {/if}

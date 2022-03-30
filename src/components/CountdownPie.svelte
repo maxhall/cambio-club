@@ -11,7 +11,8 @@
   const pieDegrees = tweened(360, {
     duration: 0,
   });
-  const backgroundArcPath = arcFn({
+  const backgroundArcPath =
+    arcFn({
       innerRadius: 0,
       outerRadius: 48,
       startAngle: Math.PI * 2,
@@ -29,9 +30,9 @@
     const elapsedDegrees = countdown
       ? countdown.remainingTime / countdown.totalTime
       : 0;
-    // Take it to the updated point
+    // When the props change set the pit to the latest progress point...
     pieDegrees.set(elapsedDegrees, { duration: 0 });
-    // Then immediately set it counting down to zero
+    // ...then immediately set it counting down to zero
     pieDegrees.set(0, { duration: countdown?.remainingTime });
     if (countdown?.remainingTime) {
       setTextTimer(countdown.remainingTime);
@@ -71,7 +72,7 @@
     <div class="arc">
       <svg viewBox="0 0 100 100">
         <g transform="translate(50,50)">
-            <path
+          <path
             d={backgroundArcPath}
             fill={countdown && countdown.type === "viewing"
               ? "hsl(210, 100%, 70%)"

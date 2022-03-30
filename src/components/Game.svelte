@@ -65,7 +65,6 @@
   }
 
   async function handleLeave() {
-    console.log("Leaving");
     sendUpdate({
       gameId: state.gameId,
       action: "leave",

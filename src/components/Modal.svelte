@@ -31,8 +31,8 @@
             height="100"
             rx="5"
             transform="translate(45 0) rotate(45 5 50)"
-            />
-            <rect
+          />
+          <rect
             class="exit-cross"
             width="10"
             height="100"
@@ -92,7 +92,7 @@
     fill: var(--game-bg);
   }
 
-  @media (max-width:500px) {
+  @media (max-width: 500px) {
     .inner {
       margin: 1rem;
     }

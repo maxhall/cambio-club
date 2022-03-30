@@ -9,29 +9,28 @@
   });
 
   $: {
-    const barPct = (countdown) ? (countdown.remainingTime / countdown.totalTime) * 100 : 0;
-    // Take it to the updated point
+    const barPct = countdown
+      ? (countdown.remainingTime / countdown.totalTime) * 100
+      : 0;
+    // When the props change, set the bar to the latest progress point...
     barWidth.set(barPct, { duration: 0 });
-    // Then immediately set it counting down to zero
+    // ...then immediately set it counting down to zero
     barWidth.set(0, { duration: countdown?.remainingTime });
   }
   $: statusClass = getStatusClass(countdown);
 
   /** @param countdown {Countdown | undefined} */
   function getStatusClass(countdown) {
-    if (!countdown) return 'inactive';
-    
-    if (countdown.type === 'viewing') return 'viewing';
+    if (!countdown) return "inactive";
 
-    return 'snap';
+    if (countdown.type === "viewing") return "viewing";
+
+    return "snap";
   }
 </script>
 
 <div class="wrapper {statusClass}">
-    <div
-      class="bar"
-      style="width: {$barWidth}%;"
-    />
+  <div class="bar" style="width: {$barWidth}%;" />
 </div>
 
 <style>
@@ -43,12 +42,12 @@
     border-radius: 0.25rem 0.25rem 0 0;
     position: relative;
   }
-  
+
   .bar {
     height: 100%;
     border-radius: 0.2rem 0 0 0;
   }
-  
+
   .inactive {
     background-color: var(--game-bg);
     border-color: var(--white);

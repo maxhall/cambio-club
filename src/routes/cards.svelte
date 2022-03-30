@@ -22,7 +22,7 @@
     </article>
   {/each}
 </main>
-<div class="overlay"></div>
+<div class="overlay" />
 
 <style>
   main {
