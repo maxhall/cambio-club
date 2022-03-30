@@ -5,6 +5,9 @@
     property="og:description"
     content="Play Cambio, the multiplayer online card game"
   />
-  <meta property="og:image" content="/socials-cover.png" />
+  <meta
+    property="og:image"
+    content="https://cambioclub.online/socials-cover.png"
+  />
 </svelte:head>
 <slot />

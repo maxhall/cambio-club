@@ -22,6 +22,7 @@
 <svelte:head>
   <title>Cambio {gameId}</title>
   <meta property="og:title" content="Play Cambio game {gameId}" />
+  <meta property="og:url" content="https://cambioclub.online/game/{gameId}" />
 </svelte:head>
 {#key gameId}
   <GameWrapper {gameId} />

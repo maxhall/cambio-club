@@ -11,6 +11,7 @@
 <svelte:head>
   <title>Cambio Club</title>
   <meta property="og:title" content="Cambio Club" />
+  <meta property="og:url" content="https://cambioclub.online" />
 </svelte:head>
 
 <div class="wrapper">

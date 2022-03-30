@@ -5,7 +5,7 @@
   const dev = process.env.NODE_ENV === "development";
   const gameURL = dev
     ? `localhost:3000/game/${gameId}`
-    : `https://cambio-club.herokuapp.com/game/${gameId}`;
+    : `https://cambioclub.online/game/${gameId}`;
   const canCopyToClipboard =
     (navigator.clipboard && navigator.clipboard.writeText) ? true : false;
   let canShare = (navigator.share) ? true : false;
